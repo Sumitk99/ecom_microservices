@@ -1,7 +1,7 @@
 syntax = "proto3";
 package pb;
 // protoc --go_out=./pb --go-grpc_out=./pb account.proto to create go files
-option go_package = "./";
+option go_package = "./pb";
 message Account {
   string id = 1;
   string name = 2;
