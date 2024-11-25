@@ -4,7 +4,9 @@ WORKDIR /go/src/github.com/Sumitk99/ecom_microservices
 COPY go.mod go.sum ./
 COPY vendor vendor
 COPY account account
-RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/catalog
+COPY catalog catalog
+COPY order order
+RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/order
 
 FROM alpine:3.18
 WORKDIR /usr/bin
