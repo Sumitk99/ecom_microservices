@@ -36,25 +36,25 @@ func NewGraphQLServer(accountUrl, catalogUrl, orderUrl string) (*Server, error) 
 	}, nil
 }
 
-//	func (s *Server) Mutation() MutationResolver {
-//		return &mutationResolver{
-//			server: s,
-//		}
-//	}
-//
-//	func (s *Server) Query() QueryResolver {
-//		return &queryResolver{
-//			server: s,
-//		}
-//	}
-//
-//	func (s *Server) Account() AccountResolver {
-//		return &queryResolver{
-//			server: s,
-//		}
-//	}
+func (s *Server) Mutation() MutationResolver {
+	return &mutationResolver{
+		server: s,
+	}
+}
+
+func (s *Server) Query() QueryResolver {
+	return &queryResolver{
+		server: s,
+	}
+}
+
+func (s *Server) Account() AccountResolver {
+	return &accountResolver{
+		server: s,
+	}
+}
 func (s *Server) ToExecutableSchema() graphql.ExecutableSchema {
-	//	return NewExecutableSchema(Config{
-	//		Resolvers: s,
-	//	})
+	return NewExecutableSchema(Config{
+		Resolvers: s,
+	})
 }

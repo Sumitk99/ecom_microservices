@@ -61,6 +61,7 @@ type ComplexityRoot struct {
 	}
 
 	Order struct {
+		AccountID  func(childComplexity int) int
 		CreatedAt  func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Products   func(childComplexity int) int
@@ -84,7 +85,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Accounts func(childComplexity int, pagination PaginationInput, id *string) int
-		Products func(childComplexity int, pagination PaginationInput, query *string) int
+		Products func(childComplexity int, pagination PaginationInput, query *string, id *string) int
 	}
 }
 
@@ -98,7 +99,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context, pagination PaginationInput, id *string) ([]*Account, error)
-	Products(ctx context.Context, pagination PaginationInput, query *string) ([]*Product, error)
+	Products(ctx context.Context, pagination PaginationInput, query *string, id *string) ([]*Product, error)
 }
 
 type executableSchema struct {
@@ -176,6 +177,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateProduct(childComplexity, args["product"].(ProductInput)), true
+
+	case "Order.accountId":
+		if e.complexity.Order.AccountID == nil {
+			break
+		}
+
+		return e.complexity.Order.AccountID(childComplexity), true
 
 	case "Order.createdAt":
 		if e.complexity.Order.CreatedAt == nil {
@@ -290,7 +298,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Products(childComplexity, args["pagination"].(PaginationInput), args["query"].(*string)), true
+		return e.complexity.Query.Products(childComplexity, args["pagination"].(PaginationInput), args["query"].(*string), args["id"].(*string)), true
 
 	}
 	return 0, false
@@ -621,6 +629,11 @@ func (ec *executionContext) field_Query_products_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["query"] = arg1
+	arg2, err := ec.field_Query_products_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Query_products_argsPagination(
@@ -660,6 +673,28 @@ func (ec *executionContext) field_Query_products_argsQuery(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 	if tmp, ok := rawArgs["query"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_products_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["id"]
+	if !ok {
+		var zeroVal *string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
 		return ec.unmarshalOString2ᚖstring(ctx, tmp)
 	}
 
@@ -868,6 +903,8 @@ func (ec *executionContext) fieldContext_Account_orders(_ context.Context, field
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Order_id(ctx, field)
+			case "accountId":
+				return ec.fieldContext_Order_accountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Order_createdAt(ctx, field)
 			case "totalPrice":
@@ -1041,6 +1078,8 @@ func (ec *executionContext) fieldContext_Mutation_createOrder(ctx context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Order_id(ctx, field)
+			case "accountId":
+				return ec.fieldContext_Order_accountId(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Order_createdAt(ctx, field)
 			case "totalPrice":
@@ -1097,6 +1136,50 @@ func (ec *executionContext) _Order_id(ctx context.Context, field graphql.Collect
 }
 
 func (ec *executionContext) fieldContext_Order_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Order",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Order_accountId(ctx context.Context, field graphql.CollectedField, obj *Order) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Order_accountId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccountID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Order_accountId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Order",
 		Field:      field,
@@ -1724,7 +1807,7 @@ func (ec *executionContext) _Query_products(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Products(rctx, fc.Args["pagination"].(PaginationInput), fc.Args["query"].(*string))
+		return ec.resolvers.Query().Products(rctx, fc.Args["pagination"].(PaginationInput), fc.Args["query"].(*string), fc.Args["id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4002,6 +4085,11 @@ func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Order")
 		case "id":
 			out.Values[i] = ec._Order_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "accountId":
+			out.Values[i] = ec._Order_accountId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

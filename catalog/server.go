@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 )
@@ -21,7 +22,7 @@ func ListenGRPC(s Service, port string) error {
 	})
 	//pb.RegisterAccountServiceServer(srv, &grpcServer{ s})
 
-	//reflection.Register(srv)
+	reflection.Register(srv)
 	err = srv.Serve(lis)
 	return err
 }

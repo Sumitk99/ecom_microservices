@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"github.com/segmentio/ksuid"
 	"time"
 )
 
@@ -21,7 +22,7 @@ type Order struct {
 type OrderedProduct struct {
 	ID          string
 	Name        string
-	Description float64
+	Description string
 	Price       float64
 	Quantity    uint32
 }
@@ -35,9 +36,24 @@ func NewService(r Repository) Service {
 }
 
 func (s *orderService) PostOrder(ctx context.Context, accountID string, products []OrderedProduct) (*Order, error) {
+	order := &Order{
+		ID:        ksuid.New().String(),
+		CreatedAt: time.Now().UTC(),
+		AccountID: accountID,
+		Products:  products,
+	}
 
+	order.TotalPrice = 0.0
+	for _, p := range products {
+		order.TotalPrice += p.Price * float64(p.Quantity)
+	}
+	err := s.repository.PutOrder(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
 }
 
 func (s *orderService) GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error) {
-
+	return s.repository.GetOrdersForAccount(ctx, accountID)
 }
