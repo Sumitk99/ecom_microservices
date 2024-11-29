@@ -26,7 +26,8 @@ func NewService(r Repository) Service {
 
 func (s *accountService) PostAccount(ctx context.Context, name string) (*Account, error) {
 	acc := Account{
-		name, ksuid.New().String(),
+		Name: name,
+		ID:   ksuid.New().String(),
 	}
 	if err := s.repository.PutAccount(ctx, acc); err != nil {
 		return nil, err

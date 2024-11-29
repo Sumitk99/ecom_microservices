@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	_ "github.com/lib/pq"
+	"log"
 )
 
 type Repository interface {
@@ -41,12 +43,13 @@ func (r *postgresRepository) Ping() error {
 }
 
 func (r *postgresRepository) PutAccount(ctx context.Context, a Account) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO accounts (id, name) VALUES ($1, $2)", a.ID, a.Name)
+	_, err := r.db.ExecContext(ctx, "INSERT INTO accounts (id, nam) VALUES ($1, $2)", a.ID, a.Name)
+	log.Println(fmt.Sprintf("%s %s %s", a.ID, a.Name, err))
 	return err
 }
 
 func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, name FROM accounts WHERE id = $1", id)
+	row := r.db.QueryRowContext(ctx, "SELECT id, nam FROM accounts WHERE id = $1", id)
 	a := &Account{}
 	if err := row.Scan(&a.ID, &a.Name); err != nil {
 		if err == sql.ErrNoRows {
@@ -59,7 +62,7 @@ func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Ac
 
 func (r *postgresRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
 	rows, err := r.db.QueryContext(ctx,
-		"SELECT id, name FROM accounts ORDER BY id DESC OFFSET $1 LIMIT $2", skip, take)
+		"SELECT id, nam FROM accounts ORDER BY id DESC OFFSET $1 LIMIT $2", skip, take)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,8 @@
 scalar Time
 
+
+#go run github.com/99designs/gqlgen generate
+
 type Account {
     id: String!
     name: String!
@@ -61,6 +64,8 @@ type Mutation {
 }
 
 type Query {
-    accounts(pagination: PaginationInput!, id:String): [Account!]!
+    accounts(pagination: PaginationInput, id:String): [Account!]!
     products(pagination: PaginationInput!, query: String, id:String): [Product!]!
+    account(id: String!): Account
+    ordersByAccount(accountID: String!): [Order!]!
 }

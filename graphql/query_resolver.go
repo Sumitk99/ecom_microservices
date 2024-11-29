@@ -10,7 +10,7 @@ type queryResolver struct {
 	server *Server
 }
 
-func (r *queryResolver) Accounts(ctx context.Context, pagination PaginationInput, id *string) ([]*Account, error) {
+func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInput, id *string) ([]*Account, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
@@ -97,4 +97,55 @@ func (p PaginationInput) bounds() (uint64, uint64) {
 		take = uint64(p.Take)
 	}
 	return skip, take
+}
+
+func (c *queryResolver) Account(ctx context.Context, id string) (*Account, error) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	r, err := c.server.accountClient.GetAccount(ctx, id)
+	if err != nil {
+		log.Println("Error Getting Account at Graphql ", err)
+		return nil, err
+	}
+	return &Account{
+		ID:   r.ID,
+		Name: r.Name,
+	}, nil
+}
+
+func (c *queryResolver) OrdersByAccount(ctx context.Context, accountID string) ([]*Order, error) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	orderList, err := c.server.orderClient.GetOrdersForAccount(ctx, accountID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var orders []*Order
+	for _, o := range orderList {
+		order := &Order{
+			ID:         o.ID,
+			CreatedAt:  o.CreatedAt,
+			TotalPrice: o.TotalPrice,
+			Products:   []*Product{},
+		}
+		//order.CreatedAt, err = o.CreatedAt.UnmarshalBinary()MarshalBinary()
+		if err != nil {
+			log.Println(err)
+		}
+		for _, p := range o.Products {
+			order.Products = append(order.Products, &Product{
+				ID:          p.ID,
+				Description: p.Description,
+				Price:       p.Price,
+				Name:        p.Name,
+			})
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }

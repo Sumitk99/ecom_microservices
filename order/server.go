@@ -30,11 +30,12 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 		accountClient.Close()
 		return errors.New("Cannot connect to catalog microservice")
 	}
-	lis, err := net.Listen("tcp", fmt.Sprintf("%d", port))
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(fmt.Sprintf(":%d", port)))
 	if err != nil {
 		accountClient.Close()
 		catalogClient.Close()
-		return errors.New("error initiating listener")
+		return errors.New(fmt.Sprintf("Cannot listen %s", err))
 	}
 	server := grpc.NewServer()
 	pb.RegisterOrderServiceServer(server, &grpcServer{

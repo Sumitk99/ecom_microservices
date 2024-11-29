@@ -28,6 +28,7 @@ func main() {
 	})
 	defer r.Close()
 	log.Println("Listening on port 8080")
+	log.Println("database url : ", cfg.DatabaseURL)
 	s := account.NewService(r)
 	log.Fatal(account.ListenGRPC(s, "8080"))
 }
