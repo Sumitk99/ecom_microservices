@@ -53,6 +53,7 @@ func (s *Server) Account() AccountResolver {
 		server: s,
 	}
 }
+
 func (s *Server) ToExecutableSchema() graphql.ExecutableSchema {
 	return NewExecutableSchema(Config{
 		Resolvers: s,
