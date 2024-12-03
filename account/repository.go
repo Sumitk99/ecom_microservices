@@ -11,9 +11,11 @@ import (
 
 type Repository interface {
 	Close() error
-	PutAccount(ctx context.Context, a Account) error
+	SignUp(ctx context.Context, a Account) error
 	GetAccountByID(ctx context.Context, id string) (*Account, error)
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
+	ValidateNewAccount(ctx context.Context, email, phone string) (int, error)
+	GetAccountByCredentials(ctx context.Context, email, phone string) (*Account, error)
 }
 
 type postgresRepository struct {
@@ -42,9 +44,14 @@ func (r *postgresRepository) Ping() error {
 	return r.db.Ping()
 }
 
-func (r *postgresRepository) PutAccount(ctx context.Context, a Account) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO accounts (id, nam) VALUES ($1, $2)", a.ID, a.Name)
-	log.Println(fmt.Sprintf("%s %s %s", a.ID, a.Name, err))
+func (r *postgresRepository) SignUp(ctx context.Context, a Account) error {
+	_, err := r.db.ExecContext(ctx, `
+		INSERT INTO accounts (
+			id, name, password, email, phone, token, user_type, refresh_token, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		a.ID, a.Name, a.Password, a.Email, a.Phone, a.Token, a.UserType, a.RefreshToken, a.CreatedAt, a.UpdatedAt,
+	)
+	log.Println(fmt.Sprintf("Account inserted: ID=%s, Name=%s, Error=%v", a.ID, a.Name, err))
 	return err
 }
 
@@ -79,4 +86,31 @@ func (r *postgresRepository) ListAccounts(ctx context.Context, skip uint64, take
 		return nil, err
 	}
 	return accounts, nil
+}
+
+func (r *postgresRepository) ValidateNewAccount(ctx context.Context, email, phone string) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM accounts WHERE email = $1 OR phone = $2", email, phone).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *postgresRepository) GetAccountByCredentials(ctx context.Context, Email, Phone string) (*Account, error) {
+	row := r.db.QueryRowContext(ctx, "SELECT id, name, password, email, user_type FROM accounts WHERE email = $1 OR phone = $2", Email, Phone)
+	acc := Account{}
+	if err := row.Scan(
+		&acc.ID,
+		&acc.Name,
+		&acc.Password,
+		&acc.Email,
+		&acc.UserType,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("No Account Found For Given Email or Phone")
+		}
+		return nil, err
+	}
+	return &acc, nil
 }

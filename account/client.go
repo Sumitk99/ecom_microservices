@@ -30,7 +30,7 @@ func (c *Client) Close() {
 }
 
 func (c *Client) PostAccount(ctx context.Context, name string) (*Account, error) {
-	r, err := c.Service.PostAccount(ctx, &pb.PostAccountRequest{Name: name})
+	r, err := c.Service.SignUp(ctx, &pb.SignUpRequest{Name: name})
 	if err != nil {
 		return nil, err
 	}

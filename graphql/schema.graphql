@@ -6,7 +6,7 @@ scalar Time
 type Account {
     id: String!
     name: String!
-    orders: [Order!]!
+
 }
 
 type Product {
@@ -58,14 +58,15 @@ input OrderInput {
 }
 
 type Mutation {
-    createAccount(account: AccountInput!): Account
-    createProduct(product: ProductInput!): Product
-    createOrder(order: OrderInput!): Order
+    createAccount(account: AccountInput!): Account  # unprotected
+    createProduct(product: ProductInput!): Product  # protected
+    createOrder(order: OrderInput!): Order           # protected
 }
 
 type Query {
-    accounts(pagination: PaginationInput, id:String): [Account!]!
-    products(pagination: PaginationInput!, query: String, id:String): [Product!]!
-    account(id: String!): Account
-    ordersByAccount(accountID: String!): [Order!]!
+
+    accounts(pagination: PaginationInput, id:String): [Account!]!   # protected
+    products(pagination: PaginationInput!, query: String, id:String): [Product!]!   # unprotected
+    account(id: String!): Account # protected
+    ordersByAccount(accountID: String!): [Order!]! # protected
 }
