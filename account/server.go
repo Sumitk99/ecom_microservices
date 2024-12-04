@@ -49,14 +49,19 @@ func (s *grpcServer) SignUp(ctx context.Context, r *pb.SignUpRequest) (*pb.SignU
 }
 
 func (s *grpcServer) GetAccount(ctx context.Context, r *pb.GetAccountRequest) (*pb.GetAccountResponse, error) {
-	acc, err := s.service.GetAccount(ctx, r.Id)
+	log.Println("Server Side: %s", ctx.Value("UserID"))
+	acc, err := s.service.GetAccount(ctx)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(acc)
 	return &pb.GetAccountResponse{
 		Account: &pb.Account{
-			Id:   acc.ID,
-			Name: acc.Name,
+			Id:       acc.ID,
+			Name:     acc.Name,
+			Email:    acc.Email,
+			Phone:    acc.Phone,
+			UserType: acc.UserType,
 		},
 	}, nil
 }
@@ -81,7 +86,7 @@ func (s *grpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 }
 
 func (s *grpcServer) Authentication(ctx context.Context, r *pb.AuthenticationRequest) (*pb.AuthenticationResponse, error) {
-	acc, err := s.service.Authentication(ctx, r.JWT_Token)
+	acc, err := s.service.Authentication(ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err

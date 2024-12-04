@@ -3,9 +3,11 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/account/helper"
 	"github.com/go-playground/validator/v10"
 	"github.com/segmentio/ksuid"
+	"google.golang.org/grpc/metadata"
 	"log"
 	"time"
 )
@@ -13,9 +15,9 @@ import (
 type Service interface {
 	SignUp(ctx context.Context, name, password, email, phone, userType string) (*Account, error)
 	Login(ctx context.Context, email, phone, password string) (*Account, error)
-	GetAccount(ctx context.Context, id string) (*Account, error)
+	GetAccount(ctx context.Context) (*Account, error)
 	GetAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
-	Authentication(ctx context.Context, token string) (*Account, error)
+	Authentication(ctx context.Context) (*Account, error)
 }
 
 type Account struct {
@@ -40,6 +42,7 @@ func NewService(r Repository) Service {
 }
 
 func (s *accountService) SignUp(ctx context.Context, name, password, email, phone, userType string) (*Account, error) {
+	log.Println("Service Side: ", name, password, email, phone, userType)
 	count, err := s.repository.ValidateNewAccount(ctx, email, phone)
 	if err != nil {
 		log.Println(err)
@@ -71,16 +74,17 @@ func (s *accountService) SignUp(ctx context.Context, name, password, email, phon
 
 	acc.CreatedAt, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	acc.UpdatedAt, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	if err := s.repository.SignUp(ctx, acc); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
 	acc.Token, acc.RefreshToken, err = helper.GenerateTokens(acc.Name, acc.Email, acc.Phone, acc.UserType, acc.ID)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	if err := s.repository.SignUp(ctx, acc); err != nil {
-		log.Println(err)
-		return nil, err
-	}
 	acc.Password = ""
 	return &acc, nil
 }
@@ -94,11 +98,14 @@ func (s *accountService) Login(ctx context.Context, email, phone, providedpasswo
 	if err != nil {
 		return nil, err
 	}
+
 	hashedPassword := acc.Password
 	check, msg := helper.VerifyPassword(hashedPassword, providedpassword)
 	if check != true {
+
 		return nil, errors.New(msg)
 	}
+
 	acc.Token, acc.RefreshToken, err = helper.GenerateTokens(acc.Name, acc.Email, acc.Phone, acc.UserType, acc.ID)
 	if err != nil {
 		log.Println(err)
@@ -108,12 +115,22 @@ func (s *accountService) Login(ctx context.Context, email, phone, providedpasswo
 	return acc, nil
 }
 
-func (s *accountService) Authentication(ctx context.Context, token string) (*Account, error) {
-	if token == "" {
-		return nil, errors.New("Token is required")
+func (s *accountService) Authentication(ctx context.Context) (*Account, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
 	}
 
-	claims, err := helper.ValidateToken(token)
+	token := md.Get("authorization")
+	if token == nil {
+		return nil, errors.New(fmt.Sprintf("No authorization token not found in context"))
+	}
+	clientToken := token[0]
+	claims, err := helper.ValidateToken(clientToken)
+	if claims == nil {
+		return nil, errors.New(fmt.Sprintf("User not found"))
+	}
 
 	if err != nil {
 		log.Println(err)
@@ -128,8 +145,19 @@ func (s *accountService) Authentication(ctx context.Context, token string) (*Acc
 	}, nil
 }
 
-func (s *accountService) GetAccount(ctx context.Context, id string) (*Account, error) {
-	acc, err := s.repository.GetAccountByID(ctx, id)
+func (s *accountService) GetAccount(ctx context.Context) (*Account, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+
+	id := md.Get("UserID")
+	if id == nil {
+		return nil, errors.New(fmt.Sprintf("UserID not found in context"))
+	}
+	log.Println("Service Side: ", id[0])
+	acc, err := s.repository.GetAccountByID(ctx, id[0])
 	if err != nil {
 		return nil, err
 	}

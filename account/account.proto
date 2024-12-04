@@ -2,6 +2,7 @@ syntax = "proto3";
 package pb;
 // protoc --go_out=./ --go-grpc_out=./ account.proto to create go files
 option go_package = "./pb";
+
 message Account {
   string id = 1;
   string name = 2;
@@ -23,9 +24,7 @@ message SignUpResponse {
   string message = 2;
 }
 
-message GetAccountRequest {
-  string id = 1;
-}
+message GetAccountRequest {}
 
 message GetAccountResponse {
   Account account = 1;
@@ -54,9 +53,7 @@ message LoginResponse {
   string Refresh_Token = 3;
 }
 
-message AuthenticationRequest {
-  string JWT_Token = 1;
-}
+message AuthenticationRequest {}
 
 message AuthenticationResponse {
   Account account = 1;

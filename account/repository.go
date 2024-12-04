@@ -45,20 +45,23 @@ func (r *postgresRepository) Ping() error {
 }
 
 func (r *postgresRepository) SignUp(ctx context.Context, a Account) error {
+
 	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO accounts (
 			id, name, password, email, phone, token, user_type, refresh_token, created_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		a.ID, a.Name, a.Password, a.Email, a.Phone, a.Token, a.UserType, a.RefreshToken, a.CreatedAt, a.UpdatedAt,
 	)
-	log.Println(fmt.Sprintf("Account inserted: ID=%s, Name=%s, Error=%v", a.ID, a.Name, err))
+	log.Println(fmt.Sprintf("Account inserted: ID=%s, Name=%s, Email=%s\n Error=%v", a.ID, a.Name, a.Email, err))
 	return err
 }
 
 func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, nam FROM accounts WHERE id = $1", id)
+	log.Println("Repo Side: ", id)
+
+	row := r.db.QueryRowContext(ctx, "SELECT id, name, email, phone, user_type FROM accounts WHERE id = $1", id)
 	a := &Account{}
-	if err := row.Scan(&a.ID, &a.Name); err != nil {
+	if err := row.Scan(&a.ID, &a.Name, &a.Email, &a.Phone, &a.UserType); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("no entries of any account found") // No rows found
 		}
@@ -98,13 +101,14 @@ func (r *postgresRepository) ValidateNewAccount(ctx context.Context, email, phon
 }
 
 func (r *postgresRepository) GetAccountByCredentials(ctx context.Context, Email, Phone string) (*Account, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, name, password, email, user_type FROM accounts WHERE email = $1 OR phone = $2", Email, Phone)
+	row := r.db.QueryRowContext(ctx, "SELECT id, name, password, email,phone, user_type FROM accounts WHERE email = $1 OR phone = $2", Email, Phone)
 	acc := Account{}
 	if err := row.Scan(
 		&acc.ID,
 		&acc.Name,
 		&acc.Password,
 		&acc.Email,
+		&acc.Phone,
 		&acc.UserType,
 	); err != nil {
 		if err == sql.ErrNoRows {
