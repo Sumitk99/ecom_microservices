@@ -1,24 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/tinrab/retry"
 	"log"
 	"time"
 )
 
 type Config struct {
-	cloudID string `envconfig:"ELASTIC_SEARCH_CLOUD_ID"`
-	apiKey  string `envconfig:"ELASTIC_SEARCH_API_KEY"`
+	cloudID string
+	apiKey  string
 }
 
 func main() {
 	var cfg Config
-	err := envconfig.Process("", &cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println("cfg.apiKey : ", cfg.apiKey)
+	fmt.Println("cfg.cloudID : ", cfg.cloudID)
+
 	var r catalog.Repository
 	retry.ForeverSleep(5*time.Second, func(_ int) (err error) {
 		r, err = catalog.NewElasticRepository(cfg.cloudID, cfg.apiKey)
@@ -30,5 +29,5 @@ func main() {
 	defer r.Close()
 	log.Println("Listening on port 8080")
 	s := catalog.NewService(r)
-	log.Fatal(catalog.ListenGRPC(s, "8080"))
+	log.Fatal(catalog.ListenGRPC(s, "8082"))
 }

@@ -4,16 +4,25 @@ package pb;
 option go_package = "./pb";
 
 message Product {
-  string id = 1;
-  string name = 2;
+  string productId = 1;
+  string title = 2;
   string description = 3;
   double price = 4;
+  string category = 5;
+  string imageURL = 6;
+  string sellerId = 7;
+  string sellerName = 8;
+  repeated string locations = 9;
 }
 
 message PostProductRequest {
-  string name = 1;
+  string title = 1;
   string description = 2;
   double price = 3;
+  string category = 4;
+  string sellerId = 5;
+  uint64 availableQuantity = 6;
+  repeated string locations = 7;
 }
 
 message PostProductResponse {

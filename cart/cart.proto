@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package pb;
+// protoc --go_out=./ --go-grpc_out=./ cart.proto
+option go_package = "./pb";
+
+message CartItem {
+  string productId = 1;
+  string title = 2;
+  double price = 3;
+  string sellerId = 4;
+  uint64 quantity = 5;
+}
+
+message Cart {
+  string cartId = 1;
+  repeated CartItem items = 2;
+  double totalPrice = 3;
+}
+
+message AddItemRequest {
+  string productId = 1;
+  uint64 quantity = 2;
+}
+
+message AddItemResponse {
+  Cart cart = 1;
+}
+
+message RemoveItemRequest {
+  string productId = 1;
+}
+
+message RemoveItemResponse {
+  Cart cart = 1;
+}
+
+message GetCartRequest {}
+
+message GetCartResponse {
+  Cart cart = 1;
+}
+
+message UpdateCartRequest {
+  string productId = 1;
+  uint64 updatedQuantity = 2;
+}
+
+message UpdateCartResponse {
+  Cart cart = 1;
+}
+
+message DeleteCartRequest {}
+
+message DeleteCartResponse {
+  Cart cart = 1;
+}
+
+message MergeCartRequest {}
+
+message MergeCartResponse {
+  Cart cart = 1;
+}
+
+service CartService {
+  rpc AddItem(AddItemRequest) returns (AddItemResponse) {}
+  rpc RemoveItem(RemoveItemRequest) returns (RemoveItemResponse) {}
+  rpc GetCart(GetCartRequest) returns (GetCartResponse) {}
+  rpc UpdateCart(UpdateCartRequest) returns (UpdateCartResponse) {}
+  rpc DeleteCart(DeleteCartRequest) returns (DeleteCartResponse) {}
+}

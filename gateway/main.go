@@ -6,7 +6,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
-	"os"
 	"time"
 )
 
@@ -25,7 +24,7 @@ func main() {
 	router.Use(cors.New(config))
 	router.Use(gin.Logger())
 
-	accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")
+	accountUrl := "localhost:8080"
 	srv, err := server.NewGinServer(accountUrl)
 	if err != nil {
 		log.Println(err)

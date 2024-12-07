@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/account/pb"
+	"github.com/Sumitk99/ecom_microservices/catalog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -13,11 +14,13 @@ import (
 )
 
 type grpcServer struct {
+	service       Service
+	catalogClient *catalog.Client
 	pb.UnimplementedAccountServiceServer
-	service Service
 }
 
 func ListenGRPC(s Service, port string) error {
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
 		return err

@@ -95,6 +95,7 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 		TotalPrice: order.TotalPrice,
 		Products:   []*pb.Order_OrderProduct{},
 	}
+
 	orderProto.CreatedAt, err = order.CreatedAt.MarshalBinary()
 	if err != nil {
 		log.Println(err)

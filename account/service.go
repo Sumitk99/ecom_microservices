@@ -42,7 +42,6 @@ func NewService(r Repository) Service {
 }
 
 func (s *accountService) SignUp(ctx context.Context, name, password, email, phone, userType string) (*Account, error) {
-	log.Println("Service Side: ", name, password, email, phone, userType)
 	count, err := s.repository.ValidateNewAccount(ctx, email, phone)
 	if err != nil {
 		log.Println(err)

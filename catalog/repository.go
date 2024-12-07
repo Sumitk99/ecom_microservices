@@ -37,6 +37,7 @@ type productDocument struct {
 }
 
 func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
+
 	client, err := elasticsearch.NewClient(
 		elasticsearch.Config{
 			CloudID: cloudId,

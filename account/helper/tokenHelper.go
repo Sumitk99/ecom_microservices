@@ -11,12 +11,12 @@ import (
 )
 
 type SignedDetails struct {
-	Email              string
-	Name               string
-	UserID             string
-	Phone              string
-	UserType           string
-	jwt.StandardClaims //inheritance
+	Email    string
+	Name     string
+	UserID   string
+	Phone    string
+	UserType string
+	jwt.StandardClaims
 }
 
 var SECRET_KEY = []byte(os.Getenv("SECRET_KEY"))
@@ -32,26 +32,19 @@ func GenerateTokens(Name, Email, Phone, UserType, ID string) (singedToken string
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
 	}
-	log.Println("created claims")
 
 	refreshClaims := &SignedDetails{ // used to get a new token if a token expires
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(168)).Unix(),
 		},
 	}
-	log.Println("created refresh claims")
 
 	singedToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(SECRET_KEY)
-	log.Println("created tokens")
-	log.Println(err)
 
 	singedRefreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString(SECRET_KEY)
-	log.Println("created refresh tokens")
-	log.Println(err)
 	if err != nil {
 		return
 	}
-	log.Println("over")
 	return
 }
 
