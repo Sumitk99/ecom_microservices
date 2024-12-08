@@ -44,8 +44,11 @@ func (c *Client) SignUp(ctx context.Context, name, password, email, phone, user_
 		return nil, err
 	}
 	return &Account{
-		ID:   r.Account.Id,
-		Name: r.Account.Name,
+		ID:       r.Account.Id,
+		Name:     r.Account.Name,
+		Email:    r.Account.Email,
+		Phone:    r.Account.Phone,
+		UserType: r.Account.UserType,
 	}, nil
 }
 

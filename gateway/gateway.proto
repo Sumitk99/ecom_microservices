@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package pb;
-// protoc --go_out=./ --go-grpc_out=./ cart.proto
+// protoc --go_out=./ --go-grpc_out=./ gateway.proto
 option go_package = "./pb";
 import "google/protobuf/empty.proto";
 
@@ -54,3 +54,4 @@ service CartService {
   rpc IssueGuestCartToken(google.protobuf.Empty) returns (IssueGuestCartTokenResponse) {}
   rpc ValidateGuestCartToken(google.protobuf.Empty) returns (ValidateGuestCartTokenResponse) {}
 }
+

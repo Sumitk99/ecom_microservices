@@ -15,7 +15,7 @@ const NoUserData = "not enough user Data provided"
 
 type Repository interface {
 	Close()
-	AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity int) error
+	AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity uint64) error
 	DeleteItem(ctx context.Context, cartName, accountId, guestId, productId string) error
 	GetCartItems(ctx context.Context, cartName, accountId, guestId string) ([]models.CartItem, error)
 	UpdateItem(ctx context.Context, cartName, accountId, guestId, productId string, updatedQuantity uint64) error
@@ -43,7 +43,7 @@ func NewPostgresRepository(url string) (Repository, error) {
 	return &postgresRepository{db}, nil
 }
 
-func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity int) error {
+func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity uint64) error {
 	if accountId == "" && guestId == "" {
 		log.Println("No info provided")
 		return errors.New("no info provided")
@@ -64,6 +64,8 @@ func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, g
 		) VALUES ($1, $2, $3)`,
 			guestId, productId, quantity,
 		)
+	} else {
+		return errors.New(NoUserData)
 	}
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -91,8 +93,9 @@ func (r *postgresRepository) GetCartItems(ctx context.Context, cartName, account
 		rows, err = r.db.QueryContext(ctx, `
 			SELECT productId, quantity FROM guestCart WHERE guestId = $1`, guestId)
 	} else {
-		return nil, errors.New("not enough data")
+		return nil, errors.New(NoUserData)
 	}
+
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)

@@ -15,7 +15,6 @@ type Config struct {
 func main() {
 	var cfg Config
 	cfg.CatalogURL = "localhost:8082"
-
 	if cfg.DatabaseURL == "" {
 		log.Fatal("No DATABASE_URL set")
 	}
@@ -32,7 +31,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Listening on port 8081")
+	log.Println("Listening on port 8083")
 	log.Println("database url : ", cfg.DatabaseURL)
 	s := cart.NewService(r)
 	log.Fatal(cart.ListenGRPC(s, cfg.CatalogURL, "8083"))

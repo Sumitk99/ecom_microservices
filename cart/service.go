@@ -3,17 +3,20 @@ package cart
 import (
 	"context"
 	"errors"
+	"github.com/Sumitk99/ecom_microservices/cart/helper"
 	"github.com/Sumitk99/ecom_microservices/cart/models"
 	"google.golang.org/grpc/metadata"
 	"log"
 )
 
 type CartService interface {
-	AddItem(ctx context.Context, productId string, quantity int) error
+	AddItem(ctx context.Context, productId string, quantity uint64) error
 	DeleteItem(ctx context.Context, productId string) error
 	GetCartItems(ctx context.Context) ([]models.CartItem, error)
 	UpdateItem(ctx context.Context, productId string, quantity uint64) error
 	DeleteCart(ctx context.Context) error
+	IssueGuestToken(ctx context.Context) (string, error)
+	ValidateGuestId(ctx context.Context) (string, error)
 }
 
 type cartService struct {
@@ -24,7 +27,10 @@ func NewService(r Repository) CartService {
 	return &cartService{r}
 }
 
-func (s *cartService) AddItem(ctx context.Context, productId string, quantity int) error {
+func (s *cartService) AddItem(ctx context.Context, productId string, quantity uint64) error {
+	if len(productId) == 0 || quantity <= 0 {
+		return errors.New("Invalid Input")
+	}
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		log.Println("metadata not found")
@@ -121,4 +127,26 @@ func (s *cartService) DeleteCart(ctx context.Context) error {
 		return errors.New("not Enough Data to Insert Item to Cart")
 	}
 	return err
+}
+
+func (s *cartService) IssueGuestToken(ctx context.Context) (string, error) {
+	return helper.GenerateGuestToken()
+}
+
+func (s *cartService) ValidateGuestId(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return "", errors.New("no user metadata found in context")
+	}
+	guestToken := md.Get("guestToken")
+	if len(guestToken) == 0 {
+		return "", errors.New("no guest token found in context")
+	}
+
+	guestId, err := helper.ValidateGuestToken(guestToken[0])
+	if err != nil {
+		return "", err
+	}
+	return guestId, err
 }

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func Authenticate(srv *server.Server) gin.HandlerFunc {
+func AuthMiddleware(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientToken := c.Request.Header.Get("authorization")
 		ctx := context.WithValue(context.Background(), "authorization", clientToken)

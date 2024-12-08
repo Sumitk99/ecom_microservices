@@ -25,7 +25,8 @@ func main() {
 	router.Use(gin.Logger())
 
 	accountUrl := "localhost:8080"
-	srv, err := server.NewGinServer(accountUrl)
+	cartUrl := "localhost:8083"
+	srv, err := server.NewGinServer(accountUrl, cartUrl)
 	if err != nil {
 		log.Println(err)
 	}

@@ -27,7 +27,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Listening on port 8080")
+	log.Println("Listening on port 8082")
 	s := catalog.NewService(r)
 	log.Fatal(catalog.ListenGRPC(s, "8082"))
 }
