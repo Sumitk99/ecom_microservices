@@ -1,19 +1,9 @@
 package models
 
-type AddItemReq struct {
+type CartOpsReq struct {
 	ProductID string `json:"product_id"`
 	Quantity  uint64 `json:"quantity"`
 	CartName  string `json:"cart_name"`
-}
-
-type RemoveItemReq struct {
-	ProductID string `json:"product_id"`
-	CartName  string `json:"cart_name"`
-}
-
-type UpdateCartReq struct {
-	ProductID string `json:"product_id"`
-	Quantity  uint64 `json:"quantity"`
 }
 
 type CartItem struct {

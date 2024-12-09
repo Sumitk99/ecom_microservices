@@ -44,11 +44,8 @@ func NewPostgresRepository(url string) (Repository, error) {
 }
 
 func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity uint64) error {
-	if accountId == "" && guestId == "" {
-		log.Println("No info provided")
-		return errors.New("no info provided")
-	}
 	var err error
+	fmt.Printf("guestId : %s\n", guestId)
 	if len(accountId) > 0 && len(cartName) > 0 {
 		_, err = r.db.ExecContext(ctx, `
 		INSERT INTO cart (

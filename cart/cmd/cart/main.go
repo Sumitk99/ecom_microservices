@@ -15,6 +15,7 @@ type Config struct {
 func main() {
 	var cfg Config
 	cfg.CatalogURL = "localhost:8082"
+
 	if cfg.DatabaseURL == "" {
 		log.Fatal("No DATABASE_URL set")
 	}

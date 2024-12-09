@@ -3,6 +3,7 @@ package cart
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/cart/helper"
 	"github.com/Sumitk99/ecom_microservices/cart/models"
 	"google.golang.org/grpc/metadata"
@@ -38,10 +39,15 @@ func (s *cartService) AddItem(ctx context.Context, productId string, quantity ui
 	}
 	var emptyString string
 	account, cart, guestId := md.Get("UserID"), md.Get("CartID"), md.Get("GuestID")
+	fmt.Println(account)
+	fmt.Println(cart)
+	fmt.Println(guestId)
 	var err error
-	if account != nil && cart != nil {
+	fmt.Printf("%s %s %s\n", account[0], cart[0], guestId[0])
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
 		err = s.repository.AddItem(ctx, cart[0], account[0], emptyString, productId, quantity)
-	} else if guestId != nil {
+	} else if len(guestId[0]) > 0 {
+		fmt.Println("guestSection Included")
 		err = s.repository.AddItem(ctx, emptyString, emptyString, guestId[0], productId, quantity)
 	} else {
 		return errors.New("not Enough Data to Insert Item to Cart")
@@ -58,9 +64,9 @@ func (s *cartService) GetCartItems(ctx context.Context) ([]models.CartItem, erro
 	var emptyString string
 	account, cart, guestId := md.Get("UserID"), md.Get("CartID"), md.Get("GuestID")
 
-	if account != nil && cart != nil {
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
 		return s.repository.GetCartItems(ctx, cart[0], account[0], emptyString)
-	} else if guestId != nil {
+	} else if len(guestId[0]) > 0 {
 		return s.repository.GetCartItems(ctx, emptyString, emptyString, guestId[0])
 	} else {
 		return nil, errors.New("not Enough Data to Insert Item to Cart")
@@ -77,9 +83,9 @@ func (s *cartService) DeleteItem(ctx context.Context, productId string) error {
 	var emptyString string
 	account, cart, guestId := md.Get("UserID"), md.Get("CartID"), md.Get("GuestID")
 	var err error
-	if account != nil && cart != nil {
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
 		err = s.repository.DeleteItem(ctx, cart[0], account[0], emptyString, productId)
-	} else if guestId != nil {
+	} else if len(guestId[0]) > 0 {
 		err = s.repository.DeleteItem(ctx, emptyString, emptyString, guestId[0], productId)
 	} else {
 		return errors.New("not Enough Data to Insert Item to Cart")
@@ -100,9 +106,9 @@ func (s *cartService) UpdateItem(ctx context.Context, productId string, quantity
 	account, cart, guestId := md.Get("UserID"), md.Get("CartID"), md.Get("GuestID")
 	var err error
 
-	if account != nil && cart != nil {
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
 		err = s.repository.UpdateItem(ctx, cart[0], account[0], emptyString, productId, quantity)
-	} else if guestId != nil {
+	} else if len(guestId[0]) > 0 {
 		err = s.repository.UpdateItem(ctx, emptyString, emptyString, guestId[0], productId, quantity)
 	} else {
 		return errors.New("not Enough Data to Insert Item to Cart")
@@ -119,9 +125,9 @@ func (s *cartService) DeleteCart(ctx context.Context) error {
 	var emptyString string
 	account, cart, guestId := md.Get("UserID"), md.Get("CartID"), md.Get("GuestID")
 	var err error
-	if account != nil && cart != nil {
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
 		err = s.repository.DeleteCart(ctx, cart[0], account[0], emptyString)
-	} else if guestId != nil {
+	} else if len(guestId[0]) > 0 {
 		err = s.repository.DeleteCart(ctx, emptyString, emptyString, guestId[0])
 	} else {
 		return errors.New("not Enough Data to Insert Item to Cart")

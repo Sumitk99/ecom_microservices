@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/gateway/routes"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
@@ -32,7 +33,7 @@ func main() {
 	}
 	routes.PublicRoutes(router, srv)
 	routes.ProtectedRoutes(router, srv)
-
+	fmt.Println("Listening on Port 8000")
 	err = router.Run(":8000")
 	if err != nil {
 		log.Println(err)
