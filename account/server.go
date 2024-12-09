@@ -9,6 +9,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/catalog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 )
@@ -51,14 +52,14 @@ func (s *grpcServer) SignUp(ctx context.Context, r *pb.SignUpRequest) (*pb.SignU
 	}, nil
 }
 
-func (s *grpcServer) GetAccount(ctx context.Context, r *pb.GetAccountRequest) (*pb.GetAccountResponse, error) {
+func (s *grpcServer) GetAccount(ctx context.Context, r *emptypb.Empty) (*pb.AccountResponse, error) {
 	log.Println("Server Side: %s", ctx.Value("UserID"))
 	acc, err := s.service.GetAccount(ctx)
 	if err != nil {
 		return nil, err
 	}
 	log.Println(acc)
-	return &pb.GetAccountResponse{
+	return &pb.AccountResponse{
 		Account: &pb.Account{
 			Id:       acc.ID,
 			Name:     acc.Name,
@@ -88,13 +89,13 @@ func (s *grpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	}, nil
 }
 
-func (s *grpcServer) Authentication(ctx context.Context, r *pb.AuthenticationRequest) (*pb.AuthenticationResponse, error) {
+func (s *grpcServer) Authentication(ctx context.Context, r *emptypb.Empty) (*pb.AccountResponse, error) {
 	acc, err := s.service.Authentication(ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return &pb.AuthenticationResponse{
+	return &pb.AccountResponse{
 		Account: &pb.Account{
 			Id:       acc.ID,
 			Name:     acc.Name,

@@ -2,7 +2,7 @@ syntax = "proto3";
 package pb;
 // protoc --go_out=./ --go-grpc_out=./ account.proto to create go files
 option go_package = "./pb";
-
+import "google/protobuf/empty.proto";
 message Account {
   string id = 1;
   string name = 2;
@@ -22,12 +22,6 @@ message SignUpRequest {
 message SignUpResponse {
   Account account = 1;
   string message = 2;
-}
-
-message GetAccountRequest {}
-
-message GetAccountResponse {
-  Account account = 1;
 }
 
 message GetAccountsRequest {
@@ -53,16 +47,14 @@ message LoginResponse {
   string Refresh_Token = 3;
 }
 
-message AuthenticationRequest {}
-
-message AuthenticationResponse {
+message AccountResponse {
   Account account = 1;
 }
 
 service AccountService {
   rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
-  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {}
+  rpc GetAccount(google.protobuf.Empty) returns (AccountResponse) {}
   rpc GetAccounts(GetAccountsRequest) returns (GetAccountsResponse) {}
-  rpc Authentication(AuthenticationRequest) returns (AuthenticationResponse) {}
+  rpc Authentication(google.protobuf.Empty) returns (AccountResponse) {}
 }

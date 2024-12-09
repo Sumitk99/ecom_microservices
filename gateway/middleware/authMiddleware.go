@@ -13,7 +13,7 @@ func AuthMiddleware(srv *server.Server) gin.HandlerFunc {
 		clientToken := c.Request.Header.Get("authorization")
 		ctx := context.WithValue(context.Background(), "authorization", clientToken)
 
-		accountClient, err := srv.AccountClient.Authentication(ctx)
+		accountClient, err := srv.Authentication(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			c.Abort()

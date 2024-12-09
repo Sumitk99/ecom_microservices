@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -32,9 +33,9 @@ const (
 type AccountServiceClient interface {
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error)
+	GetAccount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error)
 	GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*GetAccountsResponse, error)
-	Authentication(ctx context.Context, in *AuthenticationRequest, opts ...grpc.CallOption) (*AuthenticationResponse, error)
+	Authentication(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error)
 }
 
 type accountServiceClient struct {
@@ -65,9 +66,9 @@ func (c *accountServiceClient) Login(ctx context.Context, in *LoginRequest, opts
 	return out, nil
 }
 
-func (c *accountServiceClient) GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error) {
+func (c *accountServiceClient) GetAccount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAccountResponse)
+	out := new(AccountResponse)
 	err := c.cc.Invoke(ctx, AccountService_GetAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -85,9 +86,9 @@ func (c *accountServiceClient) GetAccounts(ctx context.Context, in *GetAccountsR
 	return out, nil
 }
 
-func (c *accountServiceClient) Authentication(ctx context.Context, in *AuthenticationRequest, opts ...grpc.CallOption) (*AuthenticationResponse, error) {
+func (c *accountServiceClient) Authentication(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthenticationResponse)
+	out := new(AccountResponse)
 	err := c.cc.Invoke(ctx, AccountService_Authentication_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -101,9 +102,9 @@ func (c *accountServiceClient) Authentication(ctx context.Context, in *Authentic
 type AccountServiceServer interface {
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error)
+	GetAccount(context.Context, *emptypb.Empty) (*AccountResponse, error)
 	GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error)
-	Authentication(context.Context, *AuthenticationRequest) (*AuthenticationResponse, error)
+	Authentication(context.Context, *emptypb.Empty) (*AccountResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -120,13 +121,13 @@ func (UnimplementedAccountServiceServer) SignUp(context.Context, *SignUpRequest)
 func (UnimplementedAccountServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedAccountServiceServer) GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error) {
+func (UnimplementedAccountServiceServer) GetAccount(context.Context, *emptypb.Empty) (*AccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
 }
 func (UnimplementedAccountServiceServer) GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccounts not implemented")
 }
-func (UnimplementedAccountServiceServer) Authentication(context.Context, *AuthenticationRequest) (*AuthenticationResponse, error) {
+func (UnimplementedAccountServiceServer) Authentication(context.Context, *emptypb.Empty) (*AccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authentication not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
@@ -187,7 +188,7 @@ func _AccountService_Login_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _AccountService_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAccountRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func _AccountService_GetAccount_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: AccountService_GetAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).GetAccount(ctx, req.(*GetAccountRequest))
+		return srv.(AccountServiceServer).GetAccount(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -223,7 +224,7 @@ func _AccountService_GetAccounts_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _AccountService_Authentication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthenticationRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -235,7 +236,7 @@ func _AccountService_Authentication_Handler(srv interface{}, ctx context.Context
 		FullMethod: AccountService_Authentication_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).Authentication(ctx, req.(*AuthenticationRequest))
+		return srv.(AccountServiceServer).Authentication(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

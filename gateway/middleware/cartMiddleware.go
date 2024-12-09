@@ -17,7 +17,7 @@ func CartMiddleware(srv *server.Server) gin.HandlerFunc {
 		if len(clientToken) > 0 {
 			ctx := context.WithValue(context.Background(), "authorization", clientToken)
 
-			accountClient, err := srv.AccountClient.Authentication(ctx)
+			accountClient, err := srv.Authentication(ctx)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 				c.Abort()

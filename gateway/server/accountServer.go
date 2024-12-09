@@ -1,40 +1,17 @@
-package account
+package server
 
 import (
 	"context"
 	"errors"
-	"github.com/Sumitk99/ecom_microservices/account/pb"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/Sumitk99/ecom_microservices/gateway/models"
+	"github.com/Sumitk99/ecom_microservices/gateway/pb"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 )
 
-type Client struct {
-	Conn    *grpc.ClientConn
-	Service pb.AccountServiceClient
-}
-
-func NewClient(url string) (*Client, error) {
-	conn, err := grpc.NewClient(
-		url, grpc.WithTransportCredentials(
-			insecure.NewCredentials(),
-		),
-	)
-	if err != nil {
-		return nil, err
-	}
-	service := pb.NewAccountServiceClient(conn)
-	return &Client{Conn: conn, Service: service}, nil
-}
-
-func (c *Client) Close() {
-	c.Conn.Close()
-}
-
-func (c *Client) SignUp(ctx context.Context, name, password, email, phone, user_type string) (*Account, error) {
-	r, err := c.Service.SignUp(ctx, &pb.SignUpRequest{
+func (s *Server) SignUp(ctx context.Context, name, password, email, phone, user_type string) (*models.Account, error) {
+	r, err := s.AccountClient.SignUp(ctx, &pb.SignUpRequest{
 		Name:     name,
 		Password: password,
 		Email:    email,
@@ -44,7 +21,7 @@ func (c *Client) SignUp(ctx context.Context, name, password, email, phone, user_
 	if err != nil {
 		return nil, err
 	}
-	return &Account{
+	return &models.Account{
 		ID:       r.Account.Id,
 		Name:     r.Account.Name,
 		Email:    r.Account.Email,
@@ -53,7 +30,7 @@ func (c *Client) SignUp(ctx context.Context, name, password, email, phone, user_
 	}, nil
 }
 
-func (c *Client) Login(ctx context.Context, email, phone, password string) (*Account, string, string, error) {
+func (s *Server) Login(ctx context.Context, email, phone, password string) (*models.Account, string, string, error) {
 	if email == "" && phone == "" {
 		return nil, "", "", errors.New("email or phone is required")
 	}
@@ -69,12 +46,12 @@ func (c *Client) Login(ctx context.Context, email, phone, password string) (*Acc
 		LoginPayload.ContactMethod = &pb.LoginRequest_Phone{Phone: phone}
 	}
 
-	res, err := c.Service.Login(ctx, LoginPayload)
+	res, err := s.AccountClient.Login(ctx, LoginPayload)
 	if err != nil {
 		log.Println(err)
 		return nil, "", "", err
 	}
-	return &Account{
+	return &models.Account{
 		ID:       res.Account.Id,
 		Name:     res.Account.Name,
 		Email:    res.Account.Email,
@@ -83,17 +60,17 @@ func (c *Client) Login(ctx context.Context, email, phone, password string) (*Acc
 	}, res.JWT_Token, res.Refresh_Token, err
 }
 
-func (c *Client) GetAccount(ctx context.Context) (*Account, error) {
+func (s *Server) GetAccount(ctx context.Context) (*models.Account, error) {
 	log.Println("Client Side: %s", ctx.Value("UserID"))
 	md := metadata.New(map[string]string{
 		"UserID": ctx.Value("UserID").(string),
 	})
 	ctx = metadata.NewOutgoingContext(context.Background(), md)
-	res, err := c.Service.GetAccount(ctx, &emptypb.Empty{})
+	res, err := s.AccountClient.GetAccount(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, err
 	}
-	return &Account{
+	return &models.Account{
 		ID:       res.Account.Id,
 		Name:     res.Account.Name,
 		Email:    res.Account.Email,
@@ -102,8 +79,8 @@ func (c *Client) GetAccount(ctx context.Context) (*Account, error) {
 	}, nil
 }
 
-func (c *Client) GetAccounts(ctx context.Context, skip, take uint64) ([]Account, error) {
-	res, err := c.Service.GetAccounts(
+func (s *Server) GetAccounts(ctx context.Context, skip, take uint64) ([]models.Account, error) {
+	res, err := s.AccountClient.GetAccounts(
 		ctx,
 		&pb.GetAccountsRequest{
 			Skip: skip,
@@ -112,9 +89,9 @@ func (c *Client) GetAccounts(ctx context.Context, skip, take uint64) ([]Account,
 	if err != nil {
 		return nil, err
 	}
-	accounts := make([]Account, len(res.Accounts))
+	accounts := make([]models.Account, len(res.Accounts))
 	for i, a := range res.Accounts {
-		accounts[i] = Account{
+		accounts[i] = models.Account{
 			ID:   a.Id,
 			Name: a.Name,
 		}
@@ -122,17 +99,17 @@ func (c *Client) GetAccounts(ctx context.Context, skip, take uint64) ([]Account,
 	return accounts, nil
 }
 
-func (c *Client) Authentication(ctx context.Context) (*Account, error) {
+func (s *Server) Authentication(ctx context.Context) (*models.Account, error) {
 	md := metadata.New(map[string]string{
 		"authorization": ctx.Value("authorization").(string),
 	})
 	ctx = metadata.NewOutgoingContext(context.Background(), md)
 
-	res, err := c.Service.Authentication(ctx, &emptypb.Empty{})
+	res, err := s.AccountClient.Authentication(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, err
 	}
-	return &Account{
+	return &models.Account{
 		ID:       res.Account.Id,
 		Name:     res.Account.Name,
 		Email:    res.Account.Email,

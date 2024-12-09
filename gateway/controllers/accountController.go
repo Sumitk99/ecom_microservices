@@ -14,7 +14,7 @@ func GetUser(srv *server.Server) gin.HandlerFunc {
 		userId := c.GetString("id")
 		log.Println("User ID: ", userId)
 		ctx := context.WithValue(context.Background(), "UserID", userId)
-		user, err := srv.AccountClient.GetAccount(ctx)
+		user, err := srv.GetAccount(ctx)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -33,7 +33,7 @@ func SignUp(srv *server.Server) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		user, err := srv.AccountClient.SignUp(ctx, form.Name, form.Password, form.Email, form.Phone, form.UserType)
+		user, err := srv.SignUp(ctx, form.Name, form.Password, form.Email, form.Phone, form.UserType)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -51,7 +51,7 @@ func Login(srv *server.Server) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		user, token, refreshToken, err := srv.AccountClient.Login(ctx, form.Email, form.Phone, form.Password)
+		user, token, refreshToken, err := srv.Login(ctx, form.Email, form.Phone, form.Password)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

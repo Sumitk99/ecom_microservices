@@ -5,6 +5,7 @@ package pb;
 option go_package = "./pb";
 import "google/protobuf/empty.proto";
 
+// Proto definition of Cart Service
 message CartItem {
   string productId = 1;
   string title = 2;
@@ -55,3 +56,60 @@ service CartService {
   rpc ValidateGuestCartToken(google.protobuf.Empty) returns (ValidateGuestCartTokenResponse) {}
 }
 
+
+// Proto definition of Account Service
+message Account {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string userType = 5;
+}
+
+message SignUpRequest {
+  string name = 1;
+  string Password = 2;
+  string email  = 3;
+  string phone = 4;
+  string userType = 5;
+}
+
+message SignUpResponse {
+  Account account = 1;
+  string message = 2;
+}
+
+message GetAccountsRequest {
+  uint64 skip = 1;
+  uint64 take = 2;
+}
+
+message GetAccountsResponse {
+  repeated Account accounts = 1;
+}
+
+message LoginRequest {
+  oneof contact_method {
+    string email = 1;
+    string phone = 2;
+  }
+  string password = 3;
+}
+
+message LoginResponse {
+  Account account = 1;
+  string JWT_Token = 2;
+  string Refresh_Token = 3;
+}
+
+message AccountResponse {
+  Account account = 1;
+}
+
+service AccountService {
+  rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc GetAccount(google.protobuf.Empty) returns (AccountResponse) {}
+  rpc GetAccounts(GetAccountsRequest) returns (GetAccountsResponse) {}
+  rpc Authentication(google.protobuf.Empty) returns (AccountResponse) {}
+}

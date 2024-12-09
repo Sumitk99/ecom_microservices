@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"github.com/Sumitk99/ecom_microservices/account"
 	"github.com/Sumitk99/ecom_microservices/gateway/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -11,18 +10,13 @@ import (
 )
 
 type Server struct {
-	AccountClient *account.Client
+	AccountClient pb.AccountServiceClient
 	//catalogClient *catalog.Client
 	//orderClient   *order.Client
 	CartClient pb.CartServiceClient
 }
 
 func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
-	accountClient, err := account.NewClient(accountUrl)
-	if err != nil {
-		return nil, err
-	}
-
 	CartConn, err := grpc.NewClient(
 		cartUrl, grpc.WithTransportCredentials(
 			insecure.NewCredentials(),
@@ -32,6 +26,16 @@ func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
 		return nil, err
 	}
 	CartService := pb.NewCartServiceClient(CartConn)
+
+	AccountConn, err := grpc.NewClient(
+		accountUrl, grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	AccountService := pb.NewAccountServiceClient(AccountConn)
 
 	//cartClient, err := cart.NewClient(cartUrl)
 	//if err != nil {
@@ -45,7 +49,7 @@ func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
 	//	return nil, err
 	//}
 	return &Server{
-		AccountClient: accountClient,
+		AccountClient: AccountService,
 		CartClient:    CartService,
 	}, nil
 }
