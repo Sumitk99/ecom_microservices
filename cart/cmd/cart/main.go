@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/Sumitk99/ecom_microservices/cart"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
+	"os"
 	"time"
 )
 
@@ -13,7 +15,13 @@ type Config struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 	var cfg Config
+
+	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
 	cfg.CatalogURL = "localhost:8082"
 
 	if cfg.DatabaseURL == "" {

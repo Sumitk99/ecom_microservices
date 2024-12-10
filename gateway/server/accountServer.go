@@ -115,5 +115,5 @@ func (s *Server) Authentication(ctx context.Context) (*models.Account, error) {
 		Email:    res.Account.Email,
 		Phone:    res.Account.Phone,
 		UserType: res.Account.UserType,
-	}, nil
+	}, err
 }

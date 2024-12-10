@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
+	"os"
 	"time"
 )
 
@@ -14,7 +16,14 @@ type Config struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 	var cfg Config
+
+	cfg.cloudID = os.Getenv("ELASTIC_SEARCH_CLOUD_ID")
+	cfg.apiKey = os.Getenv("ELASTIC_SEARCH_API_KEY")
 	fmt.Println("cfg.apiKey : ", cfg.apiKey)
 	fmt.Println("cfg.cloudID : ", cfg.cloudID)
 

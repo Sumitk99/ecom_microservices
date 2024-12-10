@@ -19,7 +19,7 @@ func CartMiddleware(srv *server.Server) gin.HandlerFunc {
 			ctx := context.WithValue(context.Background(), "authorization", clientToken)
 			account, err := srv.Authentication(ctx)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				c.Abort()
 				return
 			}

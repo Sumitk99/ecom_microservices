@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -10,12 +11,14 @@ import (
 
 func AuthMiddleware(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("Authenticating")
 		clientToken := c.Request.Header.Get("authorization")
 		ctx := context.WithValue(context.Background(), "authorization", clientToken)
 
 		accountClient, err := srv.Authentication(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			log.Println("Error authenticating: ", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}

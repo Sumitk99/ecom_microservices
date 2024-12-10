@@ -127,11 +127,8 @@ func (s *accountService) Authentication(ctx context.Context) (*Account, error) {
 	}
 	clientToken := token[0]
 	claims, err := helper.ValidateToken(clientToken)
-	if claims == nil {
-		return nil, errors.New(fmt.Sprintf("User not found"))
-	}
 
-	if err != nil {
+	if err != nil || claims == nil {
 		log.Println(err)
 		return nil, err
 	}
