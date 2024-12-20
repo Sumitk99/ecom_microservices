@@ -23,7 +23,8 @@ func main() {
 	var cfg Config
 
 	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
-
+	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.AccountURL = os.Getenv("ACCOUNT_SERVICE_URL")
 	var r order.Repository
 	retry.ForeverSleep(2*time.Second, func(_ int) (err error) {
 		r, err = order.NewPostgresRepository(cfg.DatabaseURL)
@@ -35,8 +36,8 @@ func main() {
 
 	defer r.Close()
 
-	log.Println("Listening on port 8080")
+	log.Println("Listening on port 8085")
 	s := order.NewService(r)
 
-	log.Fatal(order.ListenGRPC(s, cfg.AccountURL, cfg.CatalogURL, 8080))
+	log.Fatal(order.ListenGRPC(s, cfg.AccountURL, cfg.CatalogURL, 8085))
 }

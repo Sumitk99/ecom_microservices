@@ -12,6 +12,7 @@ import (
 type Config struct {
 	DatabaseURL string
 	CatalogURL  string
+	OrderURL    string
 }
 
 func main() {
@@ -22,13 +23,17 @@ func main() {
 	var cfg Config
 
 	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
-	cfg.CatalogURL = "localhost:8082"
+	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.OrderURL = os.Getenv("ORDER_SERVICE_URL")
 
-	if cfg.DatabaseURL == "" {
+	if len(cfg.DatabaseURL) == 0 {
 		log.Fatal("No DATABASE_URL set")
 	}
-	if cfg.CatalogURL == "" {
+	if len(cfg.CatalogURL) == 0 {
 		log.Fatal("No CATALOG_SERVICE_URL set")
+	}
+	if len(cfg.OrderURL) == 0 {
+		log.Fatal("No ORDER_SERVICE_URL set")
 	}
 
 	var r cart.Repository
@@ -43,6 +48,6 @@ func main() {
 	log.Println("Listening on port 8083")
 	log.Println("database url : ", cfg.DatabaseURL)
 	s := cart.NewService(r)
-	log.Fatal(cart.ListenGRPC(s, cfg.CatalogURL, "8083"))
+	log.Fatal(cart.ListenGRPC(s, cfg.CatalogURL, cfg.OrderURL, "8083"))
 
 }

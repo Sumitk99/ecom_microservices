@@ -24,6 +24,9 @@ func main() {
 
 	cfg.cloudID = os.Getenv("ELASTIC_SEARCH_CLOUD_ID")
 	cfg.apiKey = os.Getenv("ELASTIC_SEARCH_API_KEY")
+	if len(cfg.cloudID) == 0 || len(cfg.apiKey) == 0 {
+		log.Fatal("Elastic search cloud id and api key are required")
+	}
 	fmt.Println("cfg.apiKey : ", cfg.apiKey)
 	fmt.Println("cfg.cloudID : ", cfg.cloudID)
 

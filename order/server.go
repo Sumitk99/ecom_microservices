@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
+	"time"
 )
 
 type grpcServer struct {
@@ -54,19 +55,21 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 }
 
 func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) (*pb.PostOrderResponse, error) {
-	_, err := srv.accountClient.GetAccount(ctx, req.AccountId)
-	if err != nil {
-		log.Println("Error getting account", err)
-		return nil, errors.New("account not found")
-	}
-
+	//_, err := srv.accountClient.GetAccount(ctx)
+	//if err != nil {
+	//	log.Println("Error getting account", err)
+	//	return nil, errors.New("account not found")
+	//}
+	log.Println("started posting order")
 	productIDs := []string{}
 	IdToQuantity := make(map[string]int)
 	for _, p := range req.Products {
 		productIDs = append(productIDs, p.ProductId)
 		IdToQuantity[p.ProductId] = int(p.Quantity)
 	}
+	log.Println("Fetching Products from catalog")
 	orderedProducts, err := srv.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
+	log.Println("Fetched Products from catalog")
 	if err != nil {
 		log.Println("Error getting products", err)
 		return nil, errors.New("product not found")
@@ -102,16 +105,16 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 	}
 	for _, p := range order.Products {
 		orderProto.Products = append(orderProto.Products, &pb.Order_OrderProduct{
-			Id:          p.ID,
-			Description: p.Description,
-			Price:       p.Price,
-			Name:        p.Name,
-			Quantity:    p.Quantity,
+			Id:       p.ID,
+			Price:    p.Price,
+			Name:     p.Name,
+			Quantity: p.Quantity,
 		})
 	}
-
+	orderProto.ETA = time.Now().Add(time.Hour * 7 * 24).String()
 	return &pb.PostOrderResponse{
-		Order: orderProto,
+		Order:   orderProto,
+		Message: "Order Successfully Placed",
 	}, nil
 }
 
@@ -136,11 +139,10 @@ func (srv *grpcServer) GetOrdersForAccount(ctx context.Context, req *pb.GetOrder
 		}
 		for _, p := range o.Products {
 			orderProto.Products = append(orderProto.Products, &pb.Order_OrderProduct{
-				Id:          p.ID,
-				Description: p.Description,
-				Price:       p.Price,
-				Name:        p.Name,
-				Quantity:    p.Quantity,
+				Id:       p.ID,
+				Price:    p.Price,
+				Name:     p.Name,
+				Quantity: p.Quantity,
 			})
 		}
 		orders = append(orders, orderProto)

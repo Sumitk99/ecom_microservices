@@ -34,12 +34,6 @@ func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
 	}
 	AccountService := pb.NewAccountServiceClient(AccountConn)
 
-	//cartClient, err := cart.NewClient(cartUrl)
-	//if err != nil {
-	//	//accountClient.Close()
-	//	return nil, err
-	//}
-
 	//catalogClient, err := catalog.NewClient(catalogUrl)
 	//if err != nil {
 	//	accountClient.Close()

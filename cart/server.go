@@ -19,14 +19,21 @@ import (
 type grpcServer struct {
 	service       CartService
 	catalogClient *catalog.Client
+	OrderClient   pb.OrderServiceClient
 	pb.UnimplementedCartServiceServer
 }
 
-func ListenGRPC(s CartService, catalogURL, port string) error {
+func ListenGRPC(s CartService, catalogURL, orderURL, port string) error {
 	catalogClient, err := catalog.NewClient(catalogURL)
+	log.Println(fmt.Sprintf("Catalog Client: %s", catalogURL))
 	if err != nil {
 		return errors.New("Cannot connect to catalog microservice")
 	}
+	orderConn, err := grpc.Dial(orderURL, grpc.WithInsecure())
+	if err != nil {
+		return errors.New("Cannot connect to order microservice")
+	}
+	orderClient := pb.NewOrderServiceClient(orderConn)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
@@ -35,6 +42,7 @@ func ListenGRPC(s CartService, catalogURL, port string) error {
 	srv := grpc.NewServer()
 	pb.RegisterCartServiceServer(srv, &grpcServer{
 		service:                        s,
+		OrderClient:                    orderClient,
 		catalogClient:                  catalogClient,
 		UnimplementedCartServiceServer: pb.UnimplementedCartServiceServer{},
 	})
@@ -44,11 +52,14 @@ func ListenGRPC(s CartService, catalogURL, port string) error {
 }
 
 func (s *grpcServer) AddItemToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.CartResponse, error) {
+	log.Println(fmt.Sprintf("AddItemToCart: %s %d", req.ProductId, req.Quantity))
 	_, err := s.catalogClient.GetProduct(ctx, req.ProductId)
+	log.Println(fmt.Sprintf("fetched"))
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("product Not Found in catalog: %s", err))
 	}
+	log.Println(fmt.Sprintf("no error in fetching"))
 
 	err = s.service.AddItem(ctx, req.ProductId, req.Quantity)
 	if err != nil {
@@ -164,4 +175,43 @@ func (s *grpcServer) ValidateGuestCartToken(ctx context.Context, req *emptypb.Em
 	return &pb.ValidateGuestCartTokenResponse{
 		GuestId: guestId,
 	}, err
+}
+
+func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb.PostOrderResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+	account, cart := md.Get("UserID"), md.Get("CartID")
+	var products *pb.CartResponse
+	var err error
+	if len(account[0]) > 0 && len(cart[0]) > 0 {
+		products, err = s.GetCart(ctx, &emptypb.Empty{})
+		if err != nil {
+			log.Println(fmt.Sprintf("error getting cart : %s\n", err))
+			return nil, errors.New(fmt.Sprintf("cannot checkout cart : %s\n", err))
+		}
+	} else {
+		return nil, errors.New("not Enough Data to Checkout Cart")
+	}
+	log.Println("Got Cart ITEMs")
+	orderReq := new(pb.PostOrderRequest)
+	//var orderReq *pb.PostOrderRequest
+	orderReq.AccountId = account[0]
+	for _, p := range products.Cart.Items {
+		orderReq.Products = append(orderReq.Products, &pb.PostOrderRequest_OrderProduct{
+			ProductId: p.ProductId,
+			Quantity:  uint32(p.Quantity),
+		})
+	}
+	// To check if the all the products in the cart is available in the catalog
+	//products, err := s.catalogClient.GetProducts(ctx, 0, 0, nil, "")
+	log.Println("Posting Order")
+	res, err := s.OrderClient.PostOrder(ctx, orderReq)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New(fmt.Sprintf("cannot checkout cart : %s\n", err))
+	}
+	return res, err
 }

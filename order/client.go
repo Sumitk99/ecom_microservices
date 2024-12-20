@@ -81,11 +81,10 @@ func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]O
 		newOrder.CreatedAt.UnmarshalBinary(o.CreatedAt)
 		for _, p := range o.Products {
 			newOrder.Products = append(newOrder.Products, OrderedProduct{
-				ID:          p.Id,
-				Name:        p.Name,
-				Description: p.Description,
-				Price:       p.Price,
-				Quantity:    p.Quantity,
+				ID:       p.Id,
+				Name:     p.Name,
+				Price:    p.Price,
+				Quantity: p.Quantity,
 			})
 		}
 		orders = append(orders, newOrder)

@@ -95,7 +95,7 @@ func DeleteCart(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, gin.H{"Message": "Cart Succesfully Deleted"})
+		c.JSON(200, gin.H{"Message": "Cart Successfully Deleted"})
 	}
 }
 
@@ -105,6 +105,12 @@ func GetCartContext(c *gin.Context) context.Context {
 		"CartID":  c.GetString("CartID"),
 		"GuestID": c.GetString("GuestID"),
 	})
+	// NewOutgoingContext uses mdOutgoingKey{} as  Key. It creates a new context with outgoing md attached. If used
+	// in conjunction with AppendToOutgoingContext, NewOutgoingContext will
+	// overwrite any previously-appended metadata. md must not be modified after
+	// calling this function.
+	// To avoid this, use NewIncomingContext which uses mdIncomingKey{} as key
+	// if md is possibly modified later
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	return ctx
 }

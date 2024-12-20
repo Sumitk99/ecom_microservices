@@ -6,6 +6,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"log"
 	"time"
 )
@@ -24,7 +25,7 @@ func main() {
 	}
 	router.Use(cors.New(config))
 	router.Use(gin.Logger())
-
+	err := godotenv.Load()
 	accountUrl := "localhost:8080"
 	cartUrl := "localhost:8083"
 	srv, err := server.NewGinServer(accountUrl, cartUrl)
