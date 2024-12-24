@@ -6,7 +6,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"time"
 )
 
 type Client struct {
@@ -48,8 +47,7 @@ func (c *Client) PostOrder(ctx context.Context, accountID string, products []Ord
 		return nil, err
 	}
 	newOrder := res.Order
-	newOrderCreatedAt := time.Time{}
-	newOrderCreatedAt.UnmarshalBinary(newOrder.CreatedAt)
+	newOrderCreatedAt := res.Order.CreatedAt
 	return &Order{
 		ID:         newOrder.Id,
 		CreatedAt:  newOrderCreatedAt,
@@ -77,8 +75,7 @@ func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]O
 			AccountID:  accountID,
 			Products:   []OrderedProduct{},
 		}
-		newOrder.CreatedAt = time.Time{}
-		newOrder.CreatedAt.UnmarshalBinary(o.CreatedAt)
+		newOrder.CreatedAt = o.CreatedAt
 		for _, p := range o.Products {
 			newOrder.Products = append(newOrder.Products, OrderedProduct{
 				ID:       p.Id,

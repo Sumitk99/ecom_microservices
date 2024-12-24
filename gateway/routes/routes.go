@@ -20,4 +20,6 @@ func ProtectedRoutes(incomingRoutes *gin.Engine, srv *server.Server) {
 	incomingRoutes.PUT("/cart/remove", middleware.CartMiddleware(srv), controller.RemoveItemFromCart(srv))
 	incomingRoutes.PUT("/cart/update", middleware.CartMiddleware(srv), controller.UpdateCart(srv))
 	incomingRoutes.DELETE("/cart/delete", middleware.CartMiddleware(srv), controller.DeleteCart(srv))
+
+	incomingRoutes.POST("/order/post", middleware.AuthMiddleware(srv), controller.PostOrder(srv))
 }

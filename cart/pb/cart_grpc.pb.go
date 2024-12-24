@@ -389,6 +389,7 @@ var CartService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	OrderService_PostOrder_FullMethodName           = "/pb.OrderService/PostOrder"
+	OrderService_GetOrder_FullMethodName            = "/pb.OrderService/GetOrder"
 	OrderService_GetOrdersForAccount_FullMethodName = "/pb.OrderService/GetOrdersForAccount"
 )
 
@@ -397,6 +398,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
 	PostOrder(ctx context.Context, in *PostOrderRequest, opts ...grpc.CallOption) (*PostOrderResponse, error)
+	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error)
 	GetOrdersForAccount(ctx context.Context, in *GetOrdersForAccountRequest, opts ...grpc.CallOption) (*GetOrdersForAccountResponse, error)
 }
 
@@ -418,6 +420,16 @@ func (c *orderServiceClient) PostOrder(ctx context.Context, in *PostOrderRequest
 	return out, nil
 }
 
+func (c *orderServiceClient) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrderResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderServiceClient) GetOrdersForAccount(ctx context.Context, in *GetOrdersForAccountRequest, opts ...grpc.CallOption) (*GetOrdersForAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetOrdersForAccountResponse)
@@ -433,6 +445,7 @@ func (c *orderServiceClient) GetOrdersForAccount(ctx context.Context, in *GetOrd
 // for forward compatibility.
 type OrderServiceServer interface {
 	PostOrder(context.Context, *PostOrderRequest) (*PostOrderResponse, error)
+	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	GetOrdersForAccount(context.Context, *GetOrdersForAccountRequest) (*GetOrdersForAccountResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
@@ -446,6 +459,9 @@ type UnimplementedOrderServiceServer struct{}
 
 func (UnimplementedOrderServiceServer) PostOrder(context.Context, *PostOrderRequest) (*PostOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostOrder not implemented")
+}
+func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrder not implemented")
 }
 func (UnimplementedOrderServiceServer) GetOrdersForAccount(context.Context, *GetOrdersForAccountRequest) (*GetOrdersForAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrdersForAccount not implemented")
@@ -489,6 +505,24 @@ func _OrderService_PostOrder_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetOrder(ctx, req.(*GetOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderService_GetOrdersForAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrdersForAccountRequest)
 	if err := dec(in); err != nil {
@@ -517,6 +551,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PostOrder",
 			Handler:    _OrderService_PostOrder_Handler,
+		},
+		{
+			MethodName: "GetOrder",
+			Handler:    _OrderService_GetOrder_Handler,
 		},
 		{
 			MethodName: "GetOrdersForAccount",

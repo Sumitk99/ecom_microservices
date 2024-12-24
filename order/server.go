@@ -8,6 +8,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/catalog"
 	"github.com/Sumitk99/ecom_microservices/order/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
@@ -60,6 +61,18 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 	//	log.Println("Error getting account", err)
 	//	return nil, errors.New("account not found")
 	//}
+	if req.MethodOfPayment != "COD" {
+		return &pb.PostOrderResponse{
+			Message: "Other Payment to be Available Soon. Stay Tuned",
+		}, nil
+	}
+	if len(req.MethodOfPayment) == 0 {
+		return nil, errors.New("Select A Payment Method to Continue")
+	}
+	if req.MethodOfPayment != "COD" && len(req.TransactionId) == 0 {
+		return nil, errors.New("No Transaction ID Found")
+	}
+
 	log.Println("started posting order")
 	productIDs := []string{}
 	IdToQuantity := make(map[string]int)
@@ -86,23 +99,22 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 		})
 	}
 
-	order, err := srv.service.PostOrder(ctx, req.AccountId, products)
+	order, err := srv.service.PostOrder(ctx, req.AccountId, req.MethodOfPayment, req.TransactionId, req.PaymentStatus, products)
 	if err != nil {
 		log.Println("Error posting order", err)
 		return nil, errors.New("order not posted")
 	}
 
 	orderProto := &pb.Order{
-		Id:         order.ID,
-		AccountId:  order.AccountID,
-		TotalPrice: order.TotalPrice,
-		Products:   []*pb.Order_OrderProduct{},
+		Id:              order.ID,
+		AccountId:       order.AccountID,
+		TotalPrice:      order.TotalPrice,
+		MethodOfPayment: order.MethodOfPayment,
+		TransactionId:   order.TransactionID,
+		Products:        []*pb.Order_OrderProduct{},
 	}
 
-	orderProto.CreatedAt, err = order.CreatedAt.MarshalBinary()
-	if err != nil {
-		log.Println(err)
-	}
+	orderProto.CreatedAt = order.CreatedAt
 	for _, p := range order.Products {
 		orderProto.Products = append(orderProto.Products, &pb.Order_OrderProduct{
 			Id:       p.ID,
@@ -112,13 +124,79 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 		})
 	}
 	orderProto.ETA = time.Now().Add(time.Hour * 7 * 24).String()
+	if req.MethodOfPayment == "COD" {
+		orderProto.PaymentStatus = "Cash On Delivery"
+	} else {
+		orderProto.PaymentStatus = "Payment Pending"
+	}
 	return &pb.PostOrderResponse{
 		Order:   orderProto,
 		Message: "Order Successfully Placed",
 	}, nil
 }
 
+func (srv *grpcServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+	acc := md.Get("UserID")
+	if len(acc) == 0 || len(acc[0]) == 0 {
+		return nil, errors.New("not Enough Data to Get Order, Login to Access your Orders")
+	}
+
+	OrderID := req.OrderId
+	accountID := acc[0]
+	order, err := srv.service.GetOrder(ctx, OrderID, accountID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	orderRes := new(pb.Order)
+
+	orderRes = &pb.Order{
+		Id:              order.ID,
+		AccountId:       order.AccountID,
+		TotalPrice:      order.TotalPrice,
+		MethodOfPayment: order.MethodOfPayment,
+		TransactionId:   order.TransactionID,
+		CreatedAt:       order.CreatedAt,
+		PaymentStatus:   order.PaymentStatus,
+		ETA:             order.ETA,
+		OrderStatus:     order.OrderStatus,
+	}
+	for _, p := range order.Products {
+		orderRes.Products = append(orderRes.Products, &pb.Order_OrderProduct{
+			Id:       p.ID,
+			Price:    p.Price,
+			Name:     p.Name,
+			Quantity: p.Quantity,
+		})
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &pb.GetOrderResponse{
+		Order: orderRes,
+	}, nil
+}
+
 func (srv *grpcServer) GetOrdersForAccount(ctx context.Context, req *pb.GetOrdersForAccountRequest) (*pb.GetOrdersForAccountResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+	acc := md.Get("UserID")
+	if len(acc) == 0 || len(acc[0]) == 0 {
+		return nil, errors.New("not Enough Data to Get Order, Login to Access your Orders")
+	}
+	log.Println(acc[0], req.AccountId)
+	if acc[0] != req.AccountId {
+		return nil, errors.New("Unauthorized to Access This Resource")
+	}
 	accountOrders, err := srv.service.GetOrdersForAccount(ctx, req.AccountId)
 	if err != nil {
 		log.Println(err)
@@ -133,7 +211,7 @@ func (srv *grpcServer) GetOrdersForAccount(ctx context.Context, req *pb.GetOrder
 			TotalPrice: o.TotalPrice,
 			Products:   []*pb.Order_OrderProduct{},
 		}
-		orderProto.CreatedAt, err = o.CreatedAt.MarshalBinary()
+		orderProto.CreatedAt = o.CreatedAt
 		if err != nil {
 			log.Println(err)
 		}

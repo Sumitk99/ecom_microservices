@@ -178,6 +178,12 @@ func (s *grpcServer) ValidateGuestCartToken(ctx context.Context, req *emptypb.Em
 }
 
 func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb.PostOrderResponse, error) {
+	if len(req.MethodOfPayment) == 0 {
+		return nil, errors.New("Select A Payment Method to Continue")
+	}
+	if req.MethodOfPayment != "COD" && len(req.TransactionId) == 0 {
+		return nil, errors.New("No Transaction ID Found")
+	}
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		log.Println("metadata not found")
@@ -186,7 +192,7 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	account, cart := md.Get("UserID"), md.Get("CartID")
 	var products *pb.CartResponse
 	var err error
-	if len(account[0]) > 0 && len(cart[0]) > 0 {
+	if len(account) > 0 && len(cart) > 0 && len(account[0]) > 0 && len(cart[0]) > 0 {
 		products, err = s.GetCart(ctx, &emptypb.Empty{})
 		if err != nil {
 			log.Println(fmt.Sprintf("error getting cart : %s\n", err))
@@ -196,9 +202,14 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 		return nil, errors.New("not Enough Data to Checkout Cart")
 	}
 	log.Println("Got Cart ITEMs")
+
 	orderReq := new(pb.PostOrderRequest)
-	//var orderReq *pb.PostOrderRequest
-	orderReq.AccountId = account[0]
+	orderReq.AccountId, orderReq.MethodOfPayment = account[0], req.MethodOfPayment
+	orderReq.TransactionId = req.TransactionId
+	if req.MethodOfPayment == "COD" {
+		orderReq.PaymentStatus = "COD"
+	}
+
 	for _, p := range products.Cart.Items {
 		orderReq.Products = append(orderReq.Products, &pb.PostOrderRequest_OrderProduct{
 			ProductId: p.ProductId,
@@ -213,5 +224,7 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("cannot checkout cart : %s\n", err))
 	}
+	fmt.Println("order status : ", res.Order.PaymentStatus, res.Order.Id)
+	//_, err = s.DeleteCart(ctx, &emptypb.Empty{})
 	return res, err
 }
