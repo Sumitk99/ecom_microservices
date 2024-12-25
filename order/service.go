@@ -9,7 +9,7 @@ import (
 type Service interface {
 	PostOrder(ctx context.Context, accountID, MethodOfPayment, TransactionID, PaymentStatus string, products []OrderedProduct) (*Order, error)
 	GetOrder(ctx context.Context, orderID, accountID string) (*Order, error)
-	GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error)
+	GetOrdersForAccount(ctx context.Context, accountID string) ([]*UserOrder, error)
 }
 
 type Order struct {
@@ -35,6 +35,14 @@ type OrderedProduct struct {
 
 type orderService struct {
 	repository Repository
+}
+
+type UserOrder struct {
+	OrderId     string
+	CreatedAt   string
+	TotalPrice  string
+	ETA         string
+	OrderStatus string
 }
 
 func NewService(r Repository) Service {
@@ -72,6 +80,6 @@ func (s *orderService) GetOrder(ctx context.Context, orderID, accountID string) 
 	return order, err
 }
 
-func (s *orderService) GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error) {
+func (s *orderService) GetOrdersForAccount(ctx context.Context, accountID string) ([]*UserOrder, error) {
 	return s.repository.GetOrdersForAccount(ctx, accountID)
 }

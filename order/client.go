@@ -5,7 +5,6 @@ import (
 	"github.com/Sumitk99/ecom_microservices/order/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 )
 
 type Client struct {
@@ -57,35 +56,35 @@ func (c *Client) PostOrder(ctx context.Context, accountID string, products []Ord
 	}, nil
 }
 
-func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error) {
-	res, err := c.Service.GetOrdersForAccount(
-		ctx,
-		&pb.GetOrdersForAccountRequest{AccountId: accountID})
-
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	orders := []Order{}
-
-	for _, o := range res.Orders {
-		newOrder := Order{
-			ID:         o.Id,
-			TotalPrice: o.TotalPrice,
-			AccountID:  accountID,
-			Products:   []OrderedProduct{},
-		}
-		newOrder.CreatedAt = o.CreatedAt
-		for _, p := range o.Products {
-			newOrder.Products = append(newOrder.Products, OrderedProduct{
-				ID:       p.Id,
-				Name:     p.Name,
-				Price:    p.Price,
-				Quantity: p.Quantity,
-			})
-		}
-		orders = append(orders, newOrder)
-	}
-
-	return orders, nil
-}
+//func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]Order, error) {
+//	res, err := c.Service.GetOrdersForAccount(
+//		ctx,
+//		&pb.GetOrdersForAccountRequest{AccountId: accountID})
+//
+//	if err != nil {
+//		log.Println(err)
+//		return nil, err
+//	}
+//	orders := []Order{}
+//
+//	for _, o := range res.Orders {
+//		newOrder := Order{
+//			ID:         o.Id,
+//			TotalPrice: o.TotalPrice,
+//			AccountID:  accountID,
+//			Products:   []OrderedProduct{},
+//		}
+//		newOrder.CreatedAt = o.CreatedAt
+//		for _, p := range o.Products {
+//			newOrder.Products = append(newOrder.Products, OrderedProduct{
+//				ID:       p.Id,
+//				Name:     p.Name,
+//				Price:    p.Price,
+//				Quantity: p.Quantity,
+//			})
+//		}
+//		orders = append(orders, newOrder)
+//	}
+//
+//	return orders, nil
+//}

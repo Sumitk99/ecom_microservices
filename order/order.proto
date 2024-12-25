@@ -60,6 +60,13 @@ message GetOrdersForAccountRequest {
 }
 
 message GetOrdersForAccountResponse {
+  message Order {
+    string OrderId = 1;
+    string createdAt = 2;
+    string TotalPrice = 3;
+    string ETA = 4;
+    string OrderStatus = 5;
+  }
   repeated Order orders = 1;
 }
 

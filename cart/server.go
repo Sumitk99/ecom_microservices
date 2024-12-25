@@ -192,6 +192,7 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	account, cart := md.Get("UserID"), md.Get("CartID")
 	var products *pb.CartResponse
 	var err error
+	log.Printf("Account: %d Cart: %d\n", len(account[0]), len(cart[0]))
 	if len(account) > 0 && len(cart) > 0 && len(account[0]) > 0 && len(cart[0]) > 0 {
 		products, err = s.GetCart(ctx, &emptypb.Empty{})
 		if err != nil {
@@ -218,13 +219,11 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	}
 	// To check if the all the products in the cart is available in the catalog
 	//products, err := s.catalogClient.GetProducts(ctx, 0, 0, nil, "")
-	log.Println("Posting Order")
 	res, err := s.OrderClient.PostOrder(ctx, orderReq)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("cannot checkout cart : %s\n", err))
 	}
-	fmt.Println("order status : ", res.Order.PaymentStatus, res.Order.Id)
 	//_, err = s.DeleteCart(ctx, &emptypb.Empty{})
 	return res, err
 }

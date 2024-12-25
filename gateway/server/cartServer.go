@@ -102,3 +102,36 @@ func ProcessCartResponse(res *pb.CartResponse) *models.CartResponse {
 	}
 	return &cart
 }
+
+func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transactionId string) (*models.Order, error) {
+	log.Printf("Checking out cart %s with method of payment %s and transaction id %s", cartId, methodOfPayment, transactionId)
+	res, err := s.CartClient.Checkout(ctx, &pb.CheckoutRequest{
+		CartId:          cartId,
+		MethodOfPayment: methodOfPayment,
+		TransactionId:   transactionId,
+	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	Order := &models.Order{
+		OrderID:         res.Order.Id,
+		MethodOfPayment: res.Order.MethodOfPayment,
+		TransactionID:   res.Order.TransactionId,
+		PaymentStatus:   res.Order.PaymentStatus,
+		CreatedAt:       res.Order.CreatedAt,
+		TotalPrice:      res.Order.TotalPrice,
+		ETA:             res.Order.ETA,
+		OrderStatus:     res.Order.OrderStatus,
+		Products:        []*models.OrderedProduct{},
+	}
+	for _, product := range res.Order.Products {
+		Order.Products = append(Order.Products, &models.OrderedProduct{
+			ID:       product.Id,
+			Name:     product.Name,
+			Price:    product.Price,
+			Quantity: product.Quantity,
+		})
+	}
+	return Order, err
+}

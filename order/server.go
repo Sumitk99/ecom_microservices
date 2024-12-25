@@ -80,9 +80,7 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 		productIDs = append(productIDs, p.ProductId)
 		IdToQuantity[p.ProductId] = int(p.Quantity)
 	}
-	log.Println("Fetching Products from catalog")
 	orderedProducts, err := srv.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
-	log.Println("Fetched Products from catalog")
 	if err != nil {
 		log.Println("Error getting products", err)
 		return nil, errors.New("product not found")
@@ -126,8 +124,7 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 	orderProto.ETA = time.Now().Add(time.Hour * 7 * 24).String()
 	if req.MethodOfPayment == "COD" {
 		orderProto.PaymentStatus = "Cash On Delivery"
-	} else {
-		orderProto.PaymentStatus = "Payment Pending"
+		orderProto.OrderStatus = "Order Placed"
 	}
 	return &pb.PostOrderResponse{
 		Order:   orderProto,
@@ -202,30 +199,18 @@ func (srv *grpcServer) GetOrdersForAccount(ctx context.Context, req *pb.GetOrder
 		log.Println(err)
 		return nil, err
 	}
-
-	orders := []*pb.Order{}
-	for _, o := range accountOrders {
-		orderProto := &pb.Order{
-			Id:         o.ID,
-			AccountId:  o.AccountID,
-			TotalPrice: o.TotalPrice,
-			Products:   []*pb.Order_OrderProduct{},
-		}
-		orderProto.CreatedAt = o.CreatedAt
-		if err != nil {
-			log.Println(err)
-		}
-		for _, p := range o.Products {
-			orderProto.Products = append(orderProto.Products, &pb.Order_OrderProduct{
-				Id:       p.ID,
-				Price:    p.Price,
-				Name:     p.Name,
-				Quantity: p.Quantity,
-			})
-		}
-		orders = append(orders, orderProto)
+	Orders := &pb.GetOrdersForAccountResponse{
+		Orders: []*pb.GetOrdersForAccountResponse_Order{},
 	}
-	return &pb.GetOrdersForAccountResponse{
-		Orders: orders,
-	}, nil
+
+	for _, order := range accountOrders {
+		Orders.Orders = append(Orders.Orders, &pb.GetOrdersForAccountResponse_Order{
+			OrderId:     order.OrderId,
+			CreatedAt:   order.CreatedAt,
+			TotalPrice:  order.TotalPrice,
+			ETA:         order.ETA,
+			OrderStatus: order.OrderStatus,
+		})
+	}
+	return Orders, err
 }

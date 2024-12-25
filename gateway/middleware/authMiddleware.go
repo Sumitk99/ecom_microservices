@@ -13,6 +13,11 @@ func AuthMiddleware(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("Authenticating")
 		clientToken := c.Request.Header.Get("authorization")
+		if len(clientToken) == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required, please login"})
+			c.Abort()
+			return
+		}
 		ctx := context.WithValue(context.Background(), "authorization", clientToken)
 
 		accountClient, err := srv.Authentication(ctx)

@@ -19,3 +19,9 @@ type CartResponse struct {
 	Items      []*CartItem `json:"items"`
 	TotalPrice float64     `json:"total_price"`
 }
+
+type CheckoutRequest struct {
+	CartID          string `json:"cart_id"`
+	MethodOfPayment string `json:"method_of_payment"`
+	TransactionID   string `json:"transaction_id"`
+}

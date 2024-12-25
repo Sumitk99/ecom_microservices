@@ -18,7 +18,7 @@ func RequestGuestId(srv *server.Server) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(200, gin.H{"guestId": guestId})
+		c.JSON(http.StatusOK, gin.H{"guestId": guestId})
 	}
 }
 
@@ -31,14 +31,13 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err})
 			return
 		}
-		fmt.Printf("%s %s %s\n", form.CartName, form.Quantity, form.ProductID)
 		res, err := srv.AddItemToCart(ctx, form.ProductID, form.Quantity)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 	}
 }
 
@@ -51,7 +50,7 @@ func GetCart(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 
 	}
 }
@@ -67,7 +66,7 @@ func RemoveItemFromCart(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 	}
 }
 
@@ -82,7 +81,7 @@ func UpdateCart(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 	}
 }
 
@@ -95,7 +94,30 @@ func DeleteCart(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Response Received")
-		c.JSON(200, gin.H{"Message": "Cart Successfully Deleted"})
+		c.JSON(http.StatusOK, gin.H{"Message": "Cart Successfully Deleted"})
+	}
+}
+
+func Checkout(srv *server.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("CartID", c.Request.Header.Get("CartID"))
+		ctx := GetCartContext(c)
+
+		var form models.CheckoutRequest
+		form.CartID = c.Request.Header.Get("CartID")
+		err := c.BindJSON(&form)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+
+		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		fmt.Println("Response Received")
+		c.JSON(http.StatusOK, res)
 	}
 }
 

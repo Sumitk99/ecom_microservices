@@ -9,11 +9,11 @@ import (
 type Server struct {
 	AccountClient pb.AccountServiceClient
 	//catalogClient *catalog.Client
-	//orderClient   *order.Client
-	CartClient pb.CartServiceClient
+	OrderClient pb.OrderServiceClient
+	CartClient  pb.CartServiceClient
 }
 
-func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
+func NewGinServer(accountUrl, cartUrl, orderUrl string) (*Server, error) {
 	CartConn, err := grpc.NewClient(
 		cartUrl, grpc.WithTransportCredentials(
 			insecure.NewCredentials(),
@@ -30,9 +30,22 @@ func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
 		),
 	)
 	if err != nil {
+		CartConn.Close()
 		return nil, err
 	}
 	AccountService := pb.NewAccountServiceClient(AccountConn)
+
+	OrderConn, err := grpc.NewClient(
+		orderUrl, grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
+	if err != nil {
+		CartConn.Close()
+		AccountConn.Close()
+		return nil, err
+	}
+	OrderService := pb.NewOrderServiceClient(OrderConn)
 
 	//catalogClient, err := catalog.NewClient(catalogUrl)
 	//if err != nil {
@@ -42,5 +55,6 @@ func NewGinServer(accountUrl, cartUrl string) (*Server, error) {
 	return &Server{
 		AccountClient: AccountService,
 		CartClient:    CartService,
+		OrderClient:   OrderService,
 	}, nil
 }
