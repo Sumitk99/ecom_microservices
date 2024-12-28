@@ -65,6 +65,16 @@ func Login(srv *server.Server) gin.HandlerFunc {
 			JWT_Token:     token,
 			Refresh_Token: refreshToken,
 		}
+		c.SetCookie(
+			"jwt_token",   // Name of the cookie
+			res.JWT_Token, // Value of the cookie
+			36000,         // MaxAge in seconds (1 hour)
+			"/",           // Path
+			"",            // Domain (empty means any domain)
+			false,         // Secure (true if HTTPS)
+			false,         // HttpOnly (true if not accessible via JavaScript)
+		)
+
 		c.JSON(http.StatusOK, res)
 	}
 }

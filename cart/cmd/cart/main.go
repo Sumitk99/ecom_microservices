@@ -45,8 +45,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Listening on port 8083")
-	log.Println("database url : ", cfg.DatabaseURL)
+	log.Println("Cart Service Listening on port 8083")
 	s := cart.NewService(r)
 	log.Fatal(cart.ListenGRPC(s, cfg.CatalogURL, cfg.OrderURL, "8083"))
 

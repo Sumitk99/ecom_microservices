@@ -3,17 +3,17 @@ package models
 import "time"
 
 type SignUpRequest struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	UserType string `json:"user_type"`
+	Name     string `json:"name" validate:"required,min=2,max=100"`
+	Password string `json:"password" validate:"required,min=6"`
+	Email    string `json:"email" validate:"email,required"`
+	Phone    string `json:"phone" validate:"required"`
+	UserType string `json:"user_type" validate:"required,eq=ADMIN|eq=BUYER|eq=SELLER"`
 }
 
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginResponse struct {

@@ -1,8 +1,8 @@
 package models
 
 type CartOpsReq struct {
-	ProductID string `json:"product_id"`
-	Quantity  uint64 `json:"quantity"`
+	ProductID string `json:"product_id" validate:"required"`
+	Quantity  uint64 `json:"quantity" validate:"required,min=1"`
 	CartName  string `json:"cart_name"`
 }
 
@@ -21,7 +21,7 @@ type CartResponse struct {
 }
 
 type CheckoutRequest struct {
-	CartID          string `json:"cart_id"`
-	MethodOfPayment string `json:"method_of_payment"`
+	CartID          string `json:"cart_id" validate:"required"`
+	MethodOfPayment string `json:"method_of_payment" validate:"required"`
 	TransactionID   string `json:"transaction_id"`
 }

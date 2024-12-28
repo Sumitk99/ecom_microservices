@@ -51,7 +51,6 @@ func GetCart(srv *server.Server) gin.HandlerFunc {
 		}
 		fmt.Println("Response Received")
 		c.JSON(http.StatusOK, res)
-
 	}
 }
 

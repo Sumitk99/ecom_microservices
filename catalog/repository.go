@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Sumitk99/ecom_microservices/catalog/models"
 	"github.com/elastic/go-elasticsearch/v8"
 	"log"
 	"strings"
@@ -19,21 +20,15 @@ const indexName = "catalog"
 
 type Repository interface {
 	Close() error
-	PutProduct(ctx context.Context, p Product) error
-	GetProductByID(ctx context.Context, id string) (*Product, error)
-	ListProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
-	ListProductWithIDs(ctx context.Context, ids []string) ([]Product, error)
-	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
+	PutProduct(ctx context.Context, p models.Product) error
+	GetProductByID(ctx context.Context, id string) (*models.Product, error)
+	ListProducts(ctx context.Context, skip uint64, take uint64) ([]models.Product, error)
+	ListProductWithIDs(ctx context.Context, ids []string) ([]models.Product, error)
+	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]models.Product, error)
 }
 
 type elasticRepository struct {
 	client *elasticsearch.Client
-}
-
-type productDocument struct {
-	Name        string  `json:"name"`
-	Price       float64 `json:"price"`
-	Description string  `json:"description"`
 }
 
 func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
@@ -58,11 +53,19 @@ func (r *elasticRepository) Close() error {
 	return nil
 }
 
-func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error {
-	doc := productDocument{
+func (r *elasticRepository) PutProduct(ctx context.Context, p models.Product) error {
+	doc := models.ProductDocument{
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price,
+		ImageUrl:    p.ImageUrl,
+		SellerID:    p.SellerID,
+		SellerName:  p.SellerName,
+		Category:    p.Category,
+		Stock:       p.Stock,
+		Locations:   p.Locations,
+		Sizes:       p.Sizes,
+		Colors:      p.Colors,
 	}
 
 	jsonDoc, err := json.Marshal(doc)
@@ -86,7 +89,7 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error {
 	return err
 }
 
-func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Product, error) {
+func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
 	res, err := r.client.Get(
 		"catalog",
 		id,
@@ -110,25 +113,33 @@ func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Pro
 		return nil, fmt.Errorf("error accessing _source in response")
 	}
 
-	p := productDocument{}
+	product := models.ProductDocument{}
 	sourceBytes, err := json.Marshal(source)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling _source: %w", err)
 	}
 
-	if err := json.Unmarshal(sourceBytes, &p); err != nil {
+	if err := json.Unmarshal(sourceBytes, &product); err != nil {
 		return nil, fmt.Errorf("error unmarshaling into product: %w", err)
 	}
 
-	return &Product{
+	return &models.Product{
 		ID:          id,
-		Name:        p.Name,
-		Description: p.Description,
-		Price:       p.Price,
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       product.Price,
+		ImageUrl:    product.ImageUrl,
+		SellerID:    product.SellerID,
+		SellerName:  product.SellerName,
+		Category:    product.Category,
+		Stock:       product.Stock,
+		Locations:   product.Locations,
+		Sizes:       product.Sizes,
+		Colors:      product.Colors,
 	}, nil
 }
 
-func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
+func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take uint64) ([]models.Product, error) {
 	// Create the search query
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -172,7 +183,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 		return nil, fmt.Errorf("error accessing hits list in response")
 	}
 
-	products := make([]Product, 0, len(hitsList))
+	products := make([]models.Product, 0, len(hitsList))
 	for _, hit := range hitsList {
 		hitMap, ok := hit.(map[string]interface{})
 		if !ok {
@@ -190,23 +201,24 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 			return nil, fmt.Errorf("error marshaling source: %w", err)
 		}
 
-		var p productDocument
+		var p models.ProductDocument
 		if err := json.Unmarshal(sourceBytes, &p); err != nil {
 			return nil, fmt.Errorf("error unmarshaling product: %w", err)
 		}
 
-		products = append(products, Product{
-			ID:          id,
-			Name:        p.Name,
-			Description: p.Description,
-			Price:       p.Price,
+		products = append(products, models.Product{
+			ID:         id,
+			Name:       p.Name,
+			Price:      p.Price,
+			SellerName: p.SellerName,
+			ImageUrl:   p.ImageUrl,
 		})
 	}
 
 	return products, nil
 }
 
-func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string) ([]Product, error) {
+func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string) ([]models.Product, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -247,23 +259,25 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 	if !ok {
 		return nil, fmt.Errorf("error parsing hits from response")
 	}
-	products := make([]Product, 0, len(hits))
+	products := make([]models.Product, 0, len(hits))
 	for _, hit := range hits {
 		hitMap := hit.(map[string]interface{})
 		source := hitMap["_source"].(map[string]interface{})
 
-		product := Product{
-			ID:          hitMap["_id"].(string),
-			Name:        source["name"].(string),
-			Description: source["description"].(string),
-			Price:       source["price"].(float64),
+		product := models.Product{
+			ID:   hitMap["_id"].(string),
+			Name: source["name"].(string),
+			//Description: source["description"].(string),
+			Price:      source["price"].(float64),
+			ImageUrl:   source["image_url"].(string),
+			SellerName: source["seller_name"].(string),
 		}
 		products = append(products, product)
 	}
 
 	return products, nil
 }
-func (r *elasticRepository) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
+func (r *elasticRepository) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]models.Product, error) {
 	// Create the search query
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -305,16 +319,18 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 		return nil, fmt.Errorf("error parsing hits from response")
 	}
 
-	products := make([]Product, 0, len(hits))
+	products := make([]models.Product, 0, len(hits))
 	for _, hit := range hits {
 		hitMap := hit.(map[string]interface{})
 		source := hitMap["_source"].(map[string]interface{})
 
-		product := Product{
-			ID:          hitMap["_id"].(string),
-			Name:        source["name"].(string),
-			Description: source["description"].(string),
-			Price:       source["price"].(float64),
+		product := models.Product{
+			ID:   hitMap["_id"].(string),
+			Name: source["name"].(string),
+			//Description: source["description"].(string),
+			Price:      source["price"].(float64),
+			ImageUrl:   source["image_url"].(string),
+			SellerName: source["seller_name"].(string),
 		}
 		products = append(products, product)
 	}

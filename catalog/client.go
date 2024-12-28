@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"github.com/Sumitk99/ecom_microservices/catalog/models"
 	"github.com/Sumitk99/ecom_microservices/catalog/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -30,9 +31,9 @@ func (c *Client) Close() {
 	c.Conn.Close()
 }
 
-func (c *Client) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {
+func (c *Client) PostProduct(ctx context.Context, name, description string, price float64) (*models.Product, error) {
 	res, err := c.Service.PostProduct(ctx, &pb.PostProductRequest{
-		Name:        name,
+		Title:       name,
 		Description: description,
 		Price:       price,
 	})
@@ -40,15 +41,30 @@ func (c *Client) PostProduct(ctx context.Context, name, description string, pric
 		log.Println(err)
 		return nil, err
 	}
-	return &Product{
-		ID:          res.Product.Id,
-		Name:        res.Product.Name,
+	colors := []models.Color{}
+	for _, color := range res.Product.Colors {
+		colors = append(colors, models.Color{
+			ColorName: color.ColorName,
+			Hex:       color.Hex,
+		})
+	}
+	return &models.Product{
+		ID:          res.Product.ProductId,
+		Name:        res.Product.Title,
 		Description: res.Product.Description,
 		Price:       res.Product.Price,
+		Category:    res.Product.Category,
+		Stock:       res.Product.AvailableQuantity,
+		Locations:   res.Product.Locations,
+		ImageUrl:    res.Product.ImageURL,
+		Sizes:       res.Product.Sizes,
+		Colors:      colors,
+		SellerID:    res.Product.SellerId,
+		SellerName:  res.Product.SellerName,
 	}, nil
 }
 
-func (c *Client) GetProduct(ctx context.Context, id string) (*Product, error) {
+func (c *Client) GetProduct(ctx context.Context, id string) (*models.Product, error) {
 	res, err := c.Service.GetProduct(
 		ctx,
 		&pb.GetProductRequest{Id: id},
@@ -57,15 +73,30 @@ func (c *Client) GetProduct(ctx context.Context, id string) (*Product, error) {
 		log.Println(err)
 		return nil, err
 	}
-	return &Product{
-		ID:          res.Product.Id,
-		Name:        res.Product.Name,
+	colors := []models.Color{}
+	for _, color := range res.Product.Colors {
+		colors = append(colors, models.Color{
+			ColorName: color.ColorName,
+			Hex:       color.Hex,
+		})
+	}
+	return &models.Product{
+		ID:          res.Product.ProductId,
+		Name:        res.Product.Title,
 		Description: res.Product.Description,
 		Price:       res.Product.Price,
+		Category:    res.Product.Category,
+		Stock:       res.Product.AvailableQuantity,
+		Locations:   res.Product.Locations,
+		ImageUrl:    res.Product.ImageURL,
+		Sizes:       res.Product.Sizes,
+		Colors:      colors,
+		SellerID:    res.Product.SellerId,
+		SellerName:  res.Product.SellerName,
 	}, nil
 }
 
-func (c *Client) GetProducts(ctx context.Context, skip, take uint64, ids []string, query string) ([]Product, error) {
+func (c *Client) GetProducts(ctx context.Context, skip, take uint64, ids []string, query string) ([]models.Product, error) {
 	res, err := c.Service.GetProducts(
 		ctx,
 		&pb.GetProductsRequest{
@@ -79,13 +110,14 @@ func (c *Client) GetProducts(ctx context.Context, skip, take uint64, ids []strin
 		log.Println(err)
 		return nil, err
 	}
-	products := []Product{}
+	products := []models.Product{}
 	for _, p := range res.Products {
-		products = append(products, Product{
-			ID:          p.Id,
-			Name:        p.Name,
-			Description: p.Description,
-			Price:       p.Price,
+		products = append(products, models.Product{
+			ID:         p.ProductId,
+			Name:       p.Title,
+			Price:      p.Price,
+			SellerName: p.SellerName,
+			ImageUrl:   p.ImageURL,
 		})
 	}
 	return products, nil

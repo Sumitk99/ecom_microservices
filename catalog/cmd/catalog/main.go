@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog"
 	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
@@ -27,8 +26,6 @@ func main() {
 	if len(cfg.cloudID) == 0 || len(cfg.apiKey) == 0 {
 		log.Fatal("Elastic search cloud id and api key are required")
 	}
-	fmt.Println("cfg.apiKey : ", cfg.apiKey)
-	fmt.Println("cfg.cloudID : ", cfg.cloudID)
 
 	var r catalog.Repository
 	retry.ForeverSleep(5*time.Second, func(_ int) (err error) {
@@ -39,7 +36,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Listening on port 8082")
+	log.Println("Catalog Service Listening on port 8082")
 	s := catalog.NewService(r)
 	log.Fatal(catalog.ListenGRPC(s, "8082"))
 }

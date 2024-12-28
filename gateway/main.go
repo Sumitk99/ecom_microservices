@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Error loading .env file %s", err)
 	}
 	config := cors.Config{
-		AllowOrigins:     []string{"http://localhost", "http://127.0.0.1"},
+		AllowOrigins:     []string{"http://192.168.196.240:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -38,7 +38,7 @@ func main() {
 	}
 	routes.PublicRoutes(router, srv)
 	routes.ProtectedRoutes(router, srv)
-	fmt.Println("Listening on Port 8000")
+	fmt.Println("Gateway Listening on Port 8000")
 	err = router.Run(":8000")
 	if err != nil {
 		log.Println(err)
