@@ -7,6 +7,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/metadata"
+	"log"
 	"net/http"
 )
 
@@ -26,6 +27,7 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.CartOpsReq
 		err := c.BindJSON(&form)
+		c.Set("CartID", form.CartName)
 		ctx := GetCartContext(c)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err})
@@ -33,6 +35,10 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 		}
 		res, err := srv.AddItemToCart(ctx, form.ProductID, form.Quantity)
 		if err != nil {
+			if err.Error() == "Item already exists in selected cart" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -43,7 +49,15 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 
 func GetCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var form models.GetCartRequest
+		err := c.BindJSON(&form)
+		c.Set("CartID", form.CartID)
 		ctx := GetCartContext(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse CartID"})
+			return
+		}
+
 		res, err := srv.GetCart(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -103,13 +117,13 @@ func Checkout(srv *server.Server) gin.HandlerFunc {
 		ctx := GetCartContext(c)
 
 		var form models.CheckoutRequest
+		err := c.ShouldBindJSON(&form)
 		form.CartID = c.Request.Header.Get("CartID")
-		err := c.BindJSON(&form)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
+		log.Printf("%s %s %s\n", form.CartID, form.MethodOfPayment, form.TransactionID)
 		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

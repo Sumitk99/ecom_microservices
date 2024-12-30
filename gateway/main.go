@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Error loading .env file %s", err)
 	}
 	config := cors.Config{
-		AllowOrigins:     []string{"http://192.168.196.240:3000"},
+		AllowOrigins:     []string{"http://192.168.205.239:4200", "http://localhost:4200"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -29,10 +29,13 @@ func main() {
 	}
 	router.Use(cors.New(config))
 	router.Use(gin.Logger())
+
 	accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")
 	orderUrl := os.Getenv("ORDER_SERVICE_URL")
 	cartUrl := os.Getenv("CART_SERVICE_URL")
-	srv, err := server.NewGinServer(accountUrl, cartUrl, orderUrl)
+	catalogUrl := os.Getenv("CATALOG_SERVICE_URL")
+
+	srv, err := server.NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl)
 	if err != nil {
 		log.Println(err)
 	}

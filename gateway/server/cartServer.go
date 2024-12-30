@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func (s *Server) AddItemToCart(ctx context.Context, productId string, quantity uint64) (*models.CartResponse, error) {
+func (s *Server) AddItemToCart(ctx context.Context, productId string, quantity uint64) (*pb.CartResponse, error) {
 	res, err := s.CartClient.AddItemToCart(ctx, &pb.AddToCartRequest{
 		ProductId: productId,
 		Quantity:  quantity,
@@ -21,7 +21,7 @@ func (s *Server) AddItemToCart(ctx context.Context, productId string, quantity u
 		log.Println(err)
 		return nil, err
 	}
-	return ProcessCartResponse(res), err
+	return res, err
 }
 
 func (s *Server) ValidateGuestCartToken(ctx context.Context, token string) (string, error) {
@@ -44,7 +44,7 @@ func (s *Server) IssueGuestCartToken(ctx context.Context) (string, error) {
 	return res.GuestToken, err
 }
 
-func (s *Server) GetCart(ctx context.Context) (*models.CartResponse, error) {
+func (s *Server) GetCart(ctx context.Context) (*pb.CartResponse, error) {
 
 	res, err := s.CartClient.GetCart(ctx, &emptypb.Empty{})
 	fmt.Println("Grpc response received")
@@ -53,10 +53,10 @@ func (s *Server) GetCart(ctx context.Context) (*models.CartResponse, error) {
 		log.Println(err)
 		return nil, err
 	}
-	return ProcessCartResponse(res), err
+	return res, err
 }
 
-func (s *Server) RemoveItemFromCart(ctx context.Context, productId string) (*models.CartResponse, error) {
+func (s *Server) RemoveItemFromCart(ctx context.Context, productId string) (*pb.CartResponse, error) {
 	res, err := s.CartClient.RemoveItemFromCart(ctx, &pb.RemoveFromCartRequest{
 		ProductId: productId,
 	})
@@ -65,10 +65,10 @@ func (s *Server) RemoveItemFromCart(ctx context.Context, productId string) (*mod
 		log.Println(err)
 		return nil, err
 	}
-	return ProcessCartResponse(res), err
+	return res, err
 }
 
-func (s *Server) UpdateCart(ctx context.Context, productId string, updatedQuantity uint64) (*models.CartResponse, error) {
+func (s *Server) UpdateCart(ctx context.Context, productId string, updatedQuantity uint64) (*pb.CartResponse, error) {
 	res, err := s.CartClient.UpdateCart(ctx, &pb.UpdateCartRequest{
 		ProductId:       productId,
 		UpdatedQuantity: updatedQuantity,
@@ -78,7 +78,7 @@ func (s *Server) UpdateCart(ctx context.Context, productId string, updatedQuanti
 		log.Println(err)
 		return nil, err
 	}
-	return ProcessCartResponse(res), err
+	return res, err
 }
 
 func (s *Server) DeleteCart(ctx context.Context) error {
@@ -86,22 +86,24 @@ func (s *Server) DeleteCart(ctx context.Context) error {
 	return err
 }
 
-func ProcessCartResponse(res *pb.CartResponse) *models.CartResponse {
-	cart := models.CartResponse{
-		CartName:   res.Cart.CartId,
-		TotalPrice: res.Cart.TotalPrice,
-	}
-
-	for _, item := range res.Cart.Items {
-		cart.Items = append(cart.Items, &models.CartItem{
-			ProductID: item.ProductId,
-			Price:     item.Price,
-			Quantity:  item.Quantity,
-			Title:     item.Title,
-		})
-	}
-	return &cart
-}
+//func ProcessCartResponse(res *pb.CartResponse) *models.CartResponse {
+//	cart := models.CartResponse{
+//		CartName:   res.Cart.CartId,
+//		TotalPrice: res.Cart.TotalPrice,
+//	}
+//
+//	for _, item := range res.Cart.Items {
+//		cart.Items = append(cart.Items, &models.CartItem{
+//			ProductID: item.ProductId,
+//			Price:     item.Price,
+//			Quantity:  item.Quantity,
+//			Title:     item.Title,
+//			ImageURL:  item.ImageURL,
+//			SellerID:  item.SellerId,
+//		})
+//	}
+//	return &cart
+//}
 
 func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transactionId string) (*models.Order, error) {
 	log.Printf("Checking out cart %s with method of payment %s and transaction id %s", cartId, methodOfPayment, transactionId)

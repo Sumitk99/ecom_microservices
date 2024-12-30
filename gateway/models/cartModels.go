@@ -12,6 +12,7 @@ type CartItem struct {
 	Price     float64 `json:"price"`
 	Quantity  uint64  `json:"quantity"`
 	SellerID  string  `json:"seller_id"`
+	ImageURL  string  `json:"image_url"`
 }
 
 type CartResponse struct {
@@ -24,4 +25,8 @@ type CheckoutRequest struct {
 	CartID          string `json:"cart_id" validate:"required"`
 	MethodOfPayment string `json:"method_of_payment" validate:"required"`
 	TransactionID   string `json:"transaction_id"`
+}
+
+type GetCartRequest struct {
+	CartID string `json:"cart_id" validate:"required"`
 }

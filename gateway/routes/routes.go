@@ -24,6 +24,14 @@ func PublicRoutes(router *gin.Engine, srv *server.Server) {
 	router.GET(
 		"/cart/req",
 		controller.RequestGuestId(srv))
+
+	router.GET(
+		"/product/:id",
+		controller.GetProduct(srv))
+
+	router.GET(
+		"/products",
+		controller.GetProducts(srv))
 }
 
 func ProtectedRoutes(router *gin.Engine, srv *server.Server) {
@@ -35,18 +43,17 @@ func ProtectedRoutes(router *gin.Engine, srv *server.Server) {
 
 	router.POST(
 		"/cart/add",
-		validator.ValidateCartOpsReq(),
 		middleware.CartMiddleware(srv),
 		controller.AddItemToCart(srv),
 	)
 
-	router.GET(
+	router.POST(
 		"/cart/get",
 		middleware.CartMiddleware(srv),
 		controller.GetCart(srv))
 	router.PUT(
 		"/cart/remove",
-		validator.ValidateRemoveFromCartReq(),
+		//validator.ValidateRemoveFromCartReq(),
 		middleware.CartMiddleware(srv),
 		controller.RemoveItemFromCart(srv),
 	)
@@ -75,4 +82,9 @@ func ProtectedRoutes(router *gin.Engine, srv *server.Server) {
 		"/user/order/:id",
 		middleware.AuthMiddleware(srv),
 		controller.GetOrder(srv))
+
+	router.POST(
+		"/product/add",
+		middleware.SellerMiddleware(srv),
+		controller.PostProduct(srv))
 }

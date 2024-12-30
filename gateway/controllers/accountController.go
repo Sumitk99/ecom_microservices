@@ -66,14 +66,15 @@ func Login(srv *server.Server) gin.HandlerFunc {
 			Refresh_Token: refreshToken,
 		}
 		c.SetCookie(
-			"jwt_token",   // Name of the cookie
-			res.JWT_Token, // Value of the cookie
-			36000,         // MaxAge in seconds (1 hour)
-			"/",           // Path
-			"",            // Domain (empty means any domain)
-			false,         // Secure (true if HTTPS)
-			false,         // HttpOnly (true if not accessible via JavaScript)
+			"jwt_token",            // Name of the cookie
+			res.JWT_Token,          // Value of the cookie
+			36000,                  // MaxAge in seconds (10 hour)
+			"/",                    // Path
+			"192.168.205.240:3000", // Domain (empty means any domain)
+			false,                  // Secure (true if HTTPS)
+			true,                   // HttpOnly (true if not accessible via JavaScript)
 		)
+		c.SetSameSite(http.SameSiteNoneMode)
 
 		c.JSON(http.StatusOK, res)
 	}

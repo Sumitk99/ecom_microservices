@@ -5,6 +5,7 @@ type OrderedProduct struct {
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	Quantity uint32  `json:"quantity"`
+	ImageUrl string  `json:"image_url"`
 }
 
 type Order struct {
