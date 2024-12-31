@@ -51,10 +51,53 @@ message AccountResponse {
   Account account = 1;
 }
 
+message Address {
+  string AddressId = 1;
+  string userId = 2;
+  bool isDefault = 3;
+  string Street = 4;
+  string ApartmentUnit = 5;
+  string City = 6;
+  string State = 7;
+  string Country = 8;
+  string ZipCode = 9;
+  string CreatedAt = 10;
+  string Name = 11;
+  string Phone = 12;
+}
+
+message AddAddressRequest {
+  string Phone = 1;
+  bool isDefault = 2;
+  string Street = 3;
+  string ApartmentUnit = 4;
+  string City = 5;
+  string State = 6;
+  string Country = 7;
+  string ZipCode = 8;
+  string Name = 9;
+}
+message GetAddressRequest {
+  string AddressId = 1;
+}
+
+message DeleteAddressRequest {
+  string AddressId = 1;
+}
+
+message Addresses {
+  repeated Address addresses = 1;
+}
+
 service AccountService {
   rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc GetAccount(google.protobuf.Empty) returns (AccountResponse) {}
   rpc GetAccounts(GetAccountsRequest) returns (GetAccountsResponse) {}
   rpc Authentication(google.protobuf.Empty) returns (AccountResponse) {}
+
+  rpc AddAddress(AddAddressRequest) returns (Address) {}
+  rpc GetAddresses(google.protobuf.Empty) returns (Addresses) {}
+  rpc GetAddress(GetAddressRequest) returns (Address) {}
+  rpc DeleteAddress(DeleteAddressRequest) returns (google.protobuf.Empty) {}
 }

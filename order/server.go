@@ -94,6 +94,7 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 			Price:       p.Price,
 			Description: p.Description,
 			Quantity:    uint32(IdToQuantity[p.ID]),
+			ImageURL:    p.ImageUrl,
 		})
 	}
 
@@ -169,11 +170,9 @@ func (srv *grpcServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*
 			Price:    p.Price,
 			Name:     p.Name,
 			Quantity: p.Quantity,
+			ImageURL: p.ImageURL,
 		})
-	}
-	if err != nil {
-		log.Println(err)
-		return nil, err
+		fmt.Printf("imageURL: %s\n", p.ImageURL)
 	}
 	return &pb.GetOrderResponse{
 		Order: orderRes,

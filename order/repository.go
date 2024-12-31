@@ -81,13 +81,13 @@ func (r *postgresRepository) PutOrder(ctx context.Context, order Order) error {
 		return err
 	}
 
-	stmt, err := tx.PrepareContext(ctx, pq.CopyIn("ordered_products", "order_id", "product_id", "quantity", "name", "price"))
+	stmt, err := tx.PrepareContext(ctx, pq.CopyIn("ordered_products", "order_id", "product_id", "quantity", "name", "price", "image_url"))
 	if err != nil {
 		return err
 	}
 
 	for _, p := range order.Products {
-		_, err = stmt.ExecContext(ctx, order.ID, p.ID, p.Quantity, p.Name, p.Price)
+		_, err = stmt.ExecContext(ctx, order.ID, p.ID, p.Quantity, p.Name, p.Price, p.ImageURL)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 
 	orderedProducts, err := r.db.QueryContext(
 		ctx,
-		"SELECT product_id, quantity, name, price FROM ordered_products WHERE order_id = $1",
+		"SELECT product_id, quantity, name, price,image_url FROM ordered_products WHERE order_id = $1",
 		orderID,
 	)
 	if orderedProducts == nil {
@@ -155,7 +155,7 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 	for orderedProducts.Next() {
 		product := new(OrderedProduct)
 
-		if err := orderedProducts.Scan(&product.ID, &product.Quantity, &product.Name, &product.Price); err != nil {
+		if err := orderedProducts.Scan(&product.ID, &product.Quantity, &product.Name, &product.Price, &product.ImageURL); err != nil {
 			log.Printf("Failed to scan ordered product: %v", err)
 			continue
 		}

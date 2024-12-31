@@ -27,6 +27,9 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.CartOpsReq
 		err := c.BindJSON(&form)
+		if len(form.CartName) == 0 {
+			form.CartName = c.GetString("id")
+		}
 		c.Set("CartID", form.CartName)
 		ctx := GetCartContext(c)
 		if err != nil {
@@ -51,6 +54,10 @@ func GetCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.GetCartRequest
 		err := c.BindJSON(&form)
+		if len(form.CartID) == 0 {
+			form.CartID = c.GetString("id")
+		}
+
 		c.Set("CartID", form.CartID)
 		ctx := GetCartContext(c)
 		if err != nil {
@@ -72,6 +79,10 @@ func RemoveItemFromCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.CartOpsReq
 		err := c.BindJSON(&form)
+		if len(form.CartName) == 0 {
+			form.CartName = c.GetString("id")
+		}
+
 		ctx := GetCartContext(c)
 		res, err := srv.RemoveItemFromCart(ctx, form.ProductID)
 		if err != nil {
@@ -87,6 +98,10 @@ func UpdateCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.CartOpsReq
 		err := c.BindJSON(&form)
+		if len(form.CartName) == 0 {
+			form.CartName = c.GetString("id")
+		}
+
 		ctx := GetCartContext(c)
 		res, err := srv.UpdateCart(ctx, form.ProductID, form.Quantity)
 		if err != nil {

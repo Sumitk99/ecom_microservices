@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	_ "github.com/GoAdminGroup/themes/adminlte"
 	"github.com/Sumitk99/ecom_microservices/gateway/routes"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"time"
@@ -19,7 +21,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file %s", err)
 	}
-	config := cors.Config{
+
+	corsPolicy := cors.Config{
 		AllowOrigins:     []string{"http://192.168.205.239:4200", "http://localhost:4200"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "authorization"},
@@ -27,7 +30,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
-	router.Use(cors.New(config))
+	router.Use(cors.New(corsPolicy))
 	router.Use(gin.Logger())
 
 	accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")

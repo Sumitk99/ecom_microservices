@@ -9,8 +9,9 @@ message CartItem {
   string productId = 1;
   string title = 2;
   double price = 3;
-  string sellerId = 4;
+  string sellerName = 4;
   uint64 quantity = 5;
+  string imageURL = 6;
 }
 
 message Cart {
@@ -51,11 +52,6 @@ message CheckoutRequest {
   string TransactionId = 3;
 }
 
-//message CheckoutResponse {
-//  string orderId = 1;
-//  string ETA = 2;
-//}
-
 service CartService {
   rpc AddItemToCart(AddToCartRequest) returns (CartResponse) {}
   rpc RemoveItemFromCart(RemoveFromCartRequest) returns (CartResponse) {}
@@ -69,6 +65,21 @@ service CartService {
 
 
 // Order Service proto file
+
+message Address {
+  string AddressId = 1;
+  string userId = 2;
+  bool isDefault = 3;
+  string Street = 4;
+  string ApartmentUnit = 5;
+  string City = 6;
+  string State = 7;
+  string Country = 8;
+  string ZipCode = 9;
+  string CreatedAt = 10;
+  string Name = 11;
+  string Phone = 12;
+}
 
 message Order{
   message OrderProduct{
@@ -88,6 +99,7 @@ message Order{
   repeated OrderProduct products = 8;
   string PaymentStatus = 9;
   string OrderStatus = 10;
+  Address address = 11;
 }
 
 message PostOrderRequest {
@@ -100,6 +112,7 @@ message PostOrderRequest {
   string TransactionId = 4;
   string PaymentStatus = 5;
   repeated OrderProduct products = 6;
+  string addressId = 7;
 }
 
 message PostOrderResponse{

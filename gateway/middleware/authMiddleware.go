@@ -28,11 +28,11 @@ func AuthMiddleware(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("id", accountClient.ID)
-		c.Set("name", accountClient.Name)
-		c.Set("email", accountClient.Email)
-		c.Set("phone", accountClient.Phone)
-		c.Set("user_type", accountClient.UserType)
+		c.Set("id", accountClient.Account.Id)
+		c.Set("name", accountClient.Account.Name)
+		c.Set("email", accountClient.Account.Email)
+		c.Set("phone", accountClient.Account.Phone)
+		c.Set("user_type", accountClient.Account.UserType)
 		log.Println("finished authenticating")
 		c.Next()
 	}

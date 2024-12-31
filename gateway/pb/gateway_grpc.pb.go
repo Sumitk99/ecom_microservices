@@ -393,6 +393,10 @@ const (
 	AccountService_GetAccount_FullMethodName     = "/pb.AccountService/GetAccount"
 	AccountService_GetAccounts_FullMethodName    = "/pb.AccountService/GetAccounts"
 	AccountService_Authentication_FullMethodName = "/pb.AccountService/Authentication"
+	AccountService_AddAddress_FullMethodName     = "/pb.AccountService/AddAddress"
+	AccountService_GetAddresses_FullMethodName   = "/pb.AccountService/GetAddresses"
+	AccountService_GetAddress_FullMethodName     = "/pb.AccountService/GetAddress"
+	AccountService_DeleteAddress_FullMethodName  = "/pb.AccountService/DeleteAddress"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -404,6 +408,10 @@ type AccountServiceClient interface {
 	GetAccount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error)
 	GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*GetAccountsResponse, error)
 	Authentication(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AccountResponse, error)
+	AddAddress(ctx context.Context, in *AddAddressRequest, opts ...grpc.CallOption) (*Address, error)
+	GetAddresses(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Addresses, error)
+	GetAddress(ctx context.Context, in *GetAddressRequest, opts ...grpc.CallOption) (*Address, error)
+	DeleteAddress(ctx context.Context, in *DeleteAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type accountServiceClient struct {
@@ -464,6 +472,46 @@ func (c *accountServiceClient) Authentication(ctx context.Context, in *emptypb.E
 	return out, nil
 }
 
+func (c *accountServiceClient) AddAddress(ctx context.Context, in *AddAddressRequest, opts ...grpc.CallOption) (*Address, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Address)
+	err := c.cc.Invoke(ctx, AccountService_AddAddress_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) GetAddresses(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Addresses, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Addresses)
+	err := c.cc.Invoke(ctx, AccountService_GetAddresses_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) GetAddress(ctx context.Context, in *GetAddressRequest, opts ...grpc.CallOption) (*Address, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Address)
+	err := c.cc.Invoke(ctx, AccountService_GetAddress_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) DeleteAddress(ctx context.Context, in *DeleteAddressRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AccountService_DeleteAddress_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountServiceServer is the server API for AccountService service.
 // All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
@@ -473,6 +521,10 @@ type AccountServiceServer interface {
 	GetAccount(context.Context, *emptypb.Empty) (*AccountResponse, error)
 	GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error)
 	Authentication(context.Context, *emptypb.Empty) (*AccountResponse, error)
+	AddAddress(context.Context, *AddAddressRequest) (*Address, error)
+	GetAddresses(context.Context, *emptypb.Empty) (*Addresses, error)
+	GetAddress(context.Context, *GetAddressRequest) (*Address, error)
+	DeleteAddress(context.Context, *DeleteAddressRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -497,6 +549,18 @@ func (UnimplementedAccountServiceServer) GetAccounts(context.Context, *GetAccoun
 }
 func (UnimplementedAccountServiceServer) Authentication(context.Context, *emptypb.Empty) (*AccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authentication not implemented")
+}
+func (UnimplementedAccountServiceServer) AddAddress(context.Context, *AddAddressRequest) (*Address, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAddress not implemented")
+}
+func (UnimplementedAccountServiceServer) GetAddresses(context.Context, *emptypb.Empty) (*Addresses, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAddresses not implemented")
+}
+func (UnimplementedAccountServiceServer) GetAddress(context.Context, *GetAddressRequest) (*Address, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAddress not implemented")
+}
+func (UnimplementedAccountServiceServer) DeleteAddress(context.Context, *DeleteAddressRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAddress not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -609,6 +673,78 @@ func _AccountService_Authentication_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_AddAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).AddAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_AddAddress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).AddAddress(ctx, req.(*AddAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountService_GetAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).GetAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_GetAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).GetAddresses(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountService_GetAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).GetAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_GetAddress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).GetAddress(ctx, req.(*GetAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountService_DeleteAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).DeleteAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_DeleteAddress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).DeleteAddress(ctx, req.(*DeleteAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -635,6 +771,22 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authentication",
 			Handler:    _AccountService_Authentication_Handler,
+		},
+		{
+			MethodName: "AddAddress",
+			Handler:    _AccountService_AddAddress_Handler,
+		},
+		{
+			MethodName: "GetAddresses",
+			Handler:    _AccountService_GetAddresses_Handler,
+		},
+		{
+			MethodName: "GetAddress",
+			Handler:    _AccountService_GetAddress_Handler,
+		},
+		{
+			MethodName: "DeleteAddress",
+			Handler:    _AccountService_DeleteAddress_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

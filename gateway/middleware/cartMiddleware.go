@@ -25,7 +25,7 @@ func CartMiddleware(srv *server.Server) gin.HandlerFunc {
 				return
 			}
 			fmt.Println(account)
-			c.Set("id", account.ID)
+			c.Set("id", account.Account.Id)
 			c.Set("CartID", c.Request.Header.Get("CartID"))
 			//c.Set("name", accountClient.Name)
 			//c.Set("email", accountClient.Email)

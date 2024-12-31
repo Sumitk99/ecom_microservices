@@ -10,15 +10,32 @@ message OrderProduct{
   uint32 quantity = 5;
 }
 
+message Address {
+  string AddressId = 1;
+  string userId = 2;
+  bool isDefault = 3;
+  string Street = 4;
+  string ApartmentUnit = 5;
+  string City = 6;
+  string State = 7;
+  string Country = 8;
+  string ZipCode = 9;
+  string CreatedAt = 10;
+  string Name = 11;
+  string Phone = 12;
+}
+
+
 message Order{
   message OrderProduct{
-    string id = 1;
+    string productId = 1;
     string name = 2;
-    double price = 4;
-    uint32 quantity = 5;
+    double price = 3;
+    uint32 quantity = 4;
+    string imageURL = 5;
   }
 
-  string id = 1;
+  string orderId = 1;
   string createdAt = 2;
   string accountId = 3;
   double totalPrice = 4;
@@ -28,6 +45,7 @@ message Order{
   repeated OrderProduct products = 8;
   string PaymentStatus = 9;
   string OrderStatus = 10;
+  Address address = 11;
 }
 
 message PostOrderRequest {
@@ -40,6 +58,7 @@ message PostOrderRequest {
   string TransactionId = 4;
   string PaymentStatus = 5;
   repeated OrderProduct products = 6;
+  string addressId = 7;
 }
 
 message PostOrderResponse{

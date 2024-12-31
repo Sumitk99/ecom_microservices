@@ -86,25 +86,6 @@ func (s *Server) DeleteCart(ctx context.Context) error {
 	return err
 }
 
-//func ProcessCartResponse(res *pb.CartResponse) *models.CartResponse {
-//	cart := models.CartResponse{
-//		CartName:   res.Cart.CartId,
-//		TotalPrice: res.Cart.TotalPrice,
-//	}
-//
-//	for _, item := range res.Cart.Items {
-//		cart.Items = append(cart.Items, &models.CartItem{
-//			ProductID: item.ProductId,
-//			Price:     item.Price,
-//			Quantity:  item.Quantity,
-//			Title:     item.Title,
-//			ImageURL:  item.ImageURL,
-//			SellerID:  item.SellerId,
-//		})
-//	}
-//	return &cart
-//}
-
 func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transactionId string) (*models.Order, error) {
 	log.Printf("Checking out cart %s with method of payment %s and transaction id %s", cartId, methodOfPayment, transactionId)
 	res, err := s.CartClient.Checkout(ctx, &pb.CheckoutRequest{
@@ -117,7 +98,7 @@ func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transact
 		return nil, err
 	}
 	Order := &models.Order{
-		OrderID:         res.Order.Id,
+		OrderID:         res.Order.OrderId,
 		MethodOfPayment: res.Order.MethodOfPayment,
 		TransactionID:   res.Order.TransactionId,
 		PaymentStatus:   res.Order.PaymentStatus,
@@ -129,7 +110,7 @@ func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transact
 	}
 	for _, product := range res.Order.Products {
 		Order.Products = append(Order.Products, &models.OrderedProduct{
-			ID:       product.Id,
+			ID:       product.ProductId,
 			Name:     product.Name,
 			Price:    product.Price,
 			Quantity: product.Quantity,

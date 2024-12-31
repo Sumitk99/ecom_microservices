@@ -287,12 +287,10 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 			},
 		},
 	}
-
 	searchBody, err := json.Marshal(searchQuery)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling query: %w", err)
 	}
-
 	res, err := r.client.Search(
 		r.client.Search.WithContext(ctx),
 		r.client.Search.WithIndex("catalog"),
@@ -300,6 +298,7 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 		r.client.Search.WithFrom(int(skip)),
 		r.client.Search.WithSize(int(take)),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("error searching products: %w", err)
 	}
@@ -320,6 +319,7 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 	}
 
 	products := make([]models.Product, 0, len(hits))
+
 	for _, hit := range hits {
 		hitMap := hit.(map[string]interface{})
 		source := hitMap["_source"].(map[string]interface{})

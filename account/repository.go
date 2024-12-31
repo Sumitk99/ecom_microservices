@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/Sumitk99/ecom_microservices/account/models"
 	_ "github.com/lib/pq"
 	"log"
 )
@@ -16,6 +17,10 @@ type Repository interface {
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 	ValidateNewAccount(ctx context.Context, email, phone string) (int, error)
 	GetAccountByCredentials(ctx context.Context, email, phone string) (*Account, error)
+	AddAddress(ctx context.Context, address *models.Address) error
+	GetAddresses(ctx context.Context, userID string) ([]*models.Address, error)
+	DeleteAddress(ctx context.Context, addressID, accountID string) error
+	GetAddress(ctx context.Context, addressID, accountID string) (*models.Address, error)
 }
 
 type postgresRepository struct {
@@ -117,4 +122,130 @@ func (r *postgresRepository) GetAccountByCredentials(ctx context.Context, Email,
 		return nil, err
 	}
 	return &acc, nil
+}
+
+func (r *postgresRepository) AddAddress(ctx context.Context, address *models.Address) error {
+	var exists bool
+	err := r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM accounts WHERE id = $1)", address.UserID).Scan(&exists)
+	if err != nil || !exists {
+		address.IsDefault = true
+	} else {
+		address.IsDefault = false
+	}
+	query := `
+		INSERT INTO addresses (
+			id, account_id, is_default, street_address, apartment_unit, 
+			city, state, country, zip_code, created_at, name, phone
+		) VALUES (
+			$1, $2, $3, $4, $5, 
+			$6, $7, $8, $9, $10, $11, $12
+		);
+	`
+
+	_, err = r.db.ExecContext(ctx, query,
+		address.AddressID,
+		address.UserID,
+		address.IsDefault,
+		address.Street,
+		address.ApartmentUnit,
+		address.City,
+		address.State,
+		address.Country,
+		address.ZipCode,
+		address.CreatedAt,
+		address.Name,
+		address.Phone,
+	)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
+}
+
+func (r *postgresRepository) GetAddresses(ctx context.Context, userID string) ([]*models.Address, error) {
+	query := `
+		SELECT id, account_id, is_default, street_address, apartment_unit, 
+			city, state, country, zip_code, created_at, name, phone
+		FROM addresses
+		WHERE account_id = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	if errors.Is(rows.Err(), sql.ErrNoRows) {
+		return nil, errors.New("No addresses found for this user")
+	}
+	defer rows.Close()
+
+	addresses := []*models.Address{}
+	for rows.Next() {
+		address := &models.Address{}
+		err = rows.Scan(
+			&address.AddressID,
+			&address.UserID,
+			&address.IsDefault,
+			&address.Street,
+			&address.ApartmentUnit,
+			&address.City,
+			&address.State,
+			&address.Country,
+			&address.ZipCode,
+			&address.CreatedAt,
+			&address.Name,
+			&address.Phone,
+		)
+		if err != nil {
+			return nil, errors.New(err.Error())
+		}
+		addresses = append(addresses, address)
+	}
+	return addresses, nil
+}
+
+func (r *postgresRepository) DeleteAddress(ctx context.Context, addressID, accountID string) error {
+	query := `
+		DELETE FROM addresses
+		WHERE id = $1 AND account_id = $2
+	`
+	res, err := r.db.ExecContext(ctx, query, addressID, accountID)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return errors.New("Invalid address Id for this user")
+	}
+	return nil
+}
+
+func (r *postgresRepository) GetAddress(ctx context.Context, addressID, accountID string) (*models.Address, error) {
+	query := `
+		SELECT id, account_id, is_default, street_address, apartment_unit, 
+			city, state, country, zip_code, created_at, name, phone
+		FROM addresses
+		WHERE id = $1 AND account_id = $2;
+	`
+
+	row := r.db.QueryRowContext(ctx, query, addressID, accountID)
+	address := &models.Address{}
+	err := row.Scan(
+		&address.AddressID,
+		&address.UserID,
+		&address.IsDefault,
+		&address.Street,
+		&address.ApartmentUnit,
+		&address.City,
+		&address.State,
+		&address.Country,
+		&address.ZipCode,
+		&address.CreatedAt,
+		&address.Name,
+		&address.Phone,
+	)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+	return address, nil
 }

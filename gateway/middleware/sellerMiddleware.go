@@ -27,16 +27,16 @@ func SellerMiddleware(srv *server.Server) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if account.UserType != "SELLER" && account.UserType != "ADMIN" {
+		if account.Account.UserType != "SELLER" && account.Account.UserType != "ADMIN" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Access"})
 			c.Abort()
 			return
 		}
-		c.Set("id", account.ID)
-		c.Set("name", account.Name)
-		c.Set("email", account.Email)
-		c.Set("phone", account.Phone)
-		c.Set("user_type", account.UserType)
+		c.Set("id", account.Account.Id)
+		c.Set("name", account.Account.Name)
+		c.Set("email", account.Account.Email)
+		c.Set("phone", account.Account.Phone)
+		c.Set("user_type", account.Account.UserType)
 		log.Println("finished authenticating")
 		c.Next()
 	}

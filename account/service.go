@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/account/helper"
+	"github.com/Sumitk99/ecom_microservices/account/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/metadata"
@@ -18,6 +19,10 @@ type Service interface {
 	GetAccount(ctx context.Context) (*Account, error)
 	GetAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 	Authentication(ctx context.Context) (*Account, error)
+	AddAddress(ctx context.Context, address models.AddAddressRequest) (*models.Address, error)
+	GetAddresses(ctx context.Context) ([]*models.Address, error)
+	DeleteAddress(ctx context.Context, addressID string) error
+	GetAddress(ctx context.Context, addressId string) (*models.Address, error)
 }
 
 type Account struct {
@@ -73,7 +78,7 @@ func (s *accountService) SignUp(ctx context.Context, name, password, email, phon
 
 	acc.CreatedAt, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	acc.UpdatedAt, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	if err := s.repository.SignUp(ctx, acc); err != nil {
+	if err = s.repository.SignUp(ctx, acc); err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -152,7 +157,6 @@ func (s *accountService) GetAccount(ctx context.Context) (*Account, error) {
 	if id == nil {
 		return nil, errors.New(fmt.Sprintf("UserID not found in context"))
 	}
-	log.Println("Service Side: ", id[0])
 	acc, err := s.repository.GetAccountByID(ctx, id[0])
 	if err != nil {
 		return nil, err
@@ -169,4 +173,111 @@ func (s *accountService) GetAccounts(ctx context.Context, skip uint64, take uint
 		return nil, err
 	}
 	return accs, nil
+}
+
+func (s *accountService) AddAddress(ctx context.Context, add models.AddAddressRequest) (*models.Address, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+
+	id := md.Get("UserID")
+	if id == nil || len(id) == 0 {
+		return nil, errors.New(fmt.Sprintf("UserID not found in context"))
+	}
+	address := models.Address{
+		Name:          add.Name,
+		Phone:         add.Phone,
+		Street:        add.Street,
+		City:          add.City,
+		State:         add.State,
+		ZipCode:       add.ZipCode,
+		Country:       add.Country,
+		IsDefault:     add.IsDefault,
+		ApartmentUnit: add.ApartmentUnit,
+		UserID:        id[0],
+		AddressID:     ksuid.New().String(),
+		CreatedAt:     time.Now().String(),
+	}
+	fmt.Println("Address Side: ", address)
+	err := s.repository.AddAddress(ctx, &address)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &address, nil
+}
+
+func (s *accountService) GetAddresses(ctx context.Context) ([]*models.Address, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+
+	id := md.Get("UserID")
+	if id == nil || len(id) == 0 {
+		return nil, errors.New(fmt.Sprintf("UserID not found in context"))
+	}
+	accountID := id[0]
+	addresses, err := s.repository.GetAddresses(ctx, accountID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return addresses, nil
+}
+
+func (s *accountService) DeleteAddress(ctx context.Context, addressID string) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return errors.New("no user metadata found in context")
+	}
+
+	id := md.Get("UserID")
+	if id == nil || len(id) == 0 {
+		return errors.New(fmt.Sprintf("UserID not found in context"))
+	}
+	accountID := id[0]
+
+	err := s.repository.DeleteAddress(ctx, addressID, accountID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (s *accountService) GetAddress(ctx context.Context, addressId string) (*models.Address, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		log.Println("metadata not found")
+		return nil, errors.New("no user metadata found in context")
+	}
+	AccountId := md.Get("UserID")
+	if AccountId == nil || len(AccountId) == 0 {
+		return nil, errors.New(fmt.Sprintf("UserID not found in context"))
+	}
+
+	address, err := s.repository.GetAddress(ctx, addressId, AccountId[0])
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New(fmt.Sprintf("Error getting address: %s", err))
+	}
+	return &models.Address{
+		Name:          address.Name,
+		Phone:         address.Phone,
+		Street:        address.Street,
+		City:          address.City,
+		State:         address.State,
+		ZipCode:       address.ZipCode,
+		Country:       address.Country,
+		IsDefault:     address.IsDefault,
+		ApartmentUnit: address.ApartmentUnit,
+		AddressID:     address.AddressID,
+		UserID:        address.UserID,
+		CreatedAt:     address.CreatedAt,
+	}, nil
 }

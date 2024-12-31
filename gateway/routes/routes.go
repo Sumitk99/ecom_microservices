@@ -87,4 +87,25 @@ func ProtectedRoutes(router *gin.Engine, srv *server.Server) {
 		"/product/add",
 		middleware.SellerMiddleware(srv),
 		controller.PostProduct(srv))
+
+	router.GET(
+		"/address/get",
+		middleware.AuthMiddleware(srv),
+		controller.GetAddresses(srv))
+
+	router.POST(
+		"/address/add",
+		middleware.AuthMiddleware(srv),
+		controller.AddAddress(srv))
+
+	router.GET(
+		"/address/get/:id",
+		middleware.AuthMiddleware(srv),
+		controller.GetAddress(srv))
+
+	router.DELETE(
+		"/address/delete/:id",
+		middleware.AuthMiddleware(srv),
+		controller.DeleteAddress(srv))
+
 }
