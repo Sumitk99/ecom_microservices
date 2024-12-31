@@ -15,20 +15,19 @@ type Account struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-// Address represents an address with user and location details.
 type Address struct {
-	AddressID     string `json:"addressId"`     // Unique identifier for the address
-	UserID        string `json:"userId"`        // User ID associated with the address
-	IsDefault     bool   `json:"isDefault"`     // Indicates if this is the default address
-	Street        string `json:"street"`        // Street name or address line
-	ApartmentUnit string `json:"apartmentUnit"` // Apartment or unit number
-	City          string `json:"city"`          // City of the address
-	State         string `json:"state"`         // State of the address
-	Country       string `json:"country"`       // Country of the address
-	ZipCode       string `json:"zipCode"`       // ZIP or postal code
-	CreatedAt     string `json:"createdAt"`     // Timestamp of when the address was created
-	Name          string `json:"name"`          // Name of the person associated with the address
-	Phone         string `json:"phone"`         // Phone number associated with the address
+	AddressID     string `json:"addressId"`
+	UserID        string `json:"userId"`
+	IsDefault     bool   `json:"isDefault"`
+	Street        string `json:"street"`
+	ApartmentUnit string `json:"apartmentUnit"`
+	City          string `json:"city"`
+	State         string `json:"state"`
+	Country       string `json:"country"`
+	ZipCode       string `json:"zipCode"`
+	CreatedAt     string `json:"createdAt"`
+	Name          string `json:"name"`
+	Phone         string `json:"phone"`
 }
 
 // AddAddressRequest represents a request to add a new address.

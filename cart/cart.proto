@@ -50,6 +50,8 @@ message CheckoutRequest {
   string cartId = 1;
   string MethodOfPayment = 2;
   string TransactionId = 3;
+  string AddressId = 4;
+
 }
 
 service CartService {

@@ -5,15 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/Sumitk99/ecom_microservices/order/models"
 	"github.com/lib/pq"
 	"log"
 )
 
 type Repository interface {
 	Close()
-	PutOrder(ctx context.Context, o Order) error
-	GetOrder(ctx context.Context, orderID, accountID string) (*Order, error)
-	GetOrdersForAccount(ctx context.Context, accountID string) ([]*UserOrder, error)
+	PutOrder(ctx context.Context, o *models.Order) error
+	GetOrder(ctx context.Context, orderID, accountID string) (*models.Order, error)
+	GetOrdersForAccount(ctx context.Context, accountID string) ([]*models.UserOrder, error)
 }
 
 type postgresRepository struct {
@@ -46,7 +47,7 @@ func TransactionHandler(tx *sql.Tx, err error) {
 	err = tx.Commit()
 }
 
-func (r *postgresRepository) PutOrder(ctx context.Context, order Order) error {
+func (r *postgresRepository) PutOrder(ctx context.Context, order *models.Order) error {
 	var TransactionID any = nil
 	if len(order.TransactionID) > 0 {
 		TransactionID = order.TransactionID
@@ -67,7 +68,7 @@ func (r *postgresRepository) PutOrder(ctx context.Context, order Order) error {
 	defer TransactionHandler(tx, err)
 	_, err = tx.ExecContext(
 		ctx,
-		"INSERT INTO orders(id, methodofpayment,transactionid, created_at, account_id, total_price, payment_status, order_status) VALUES ($1, $2, $3, $4,$5,$6,$7,$8)",
+		"INSERT INTO orders(id, methodofpayment,transactionid, created_at, account_id, total_price, payment_status, order_status, address_id) VALUES ($1, $2, $3, $4,$5,$6,$7,$8,$9)",
 		order.ID,
 		order.MethodOfPayment,
 		TransactionID,
@@ -76,6 +77,7 @@ func (r *postgresRepository) PutOrder(ctx context.Context, order Order) error {
 		order.TotalPrice,
 		order.PaymentStatus,
 		orderStatus,
+		order.AddressId,
 	)
 	if err != nil {
 		return err
@@ -100,13 +102,13 @@ func (r *postgresRepository) PutOrder(ctx context.Context, order Order) error {
 	return nil
 }
 
-func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID string) (*Order, error) {
-	order := new(Order)
+func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID string) (*models.Order, error) {
+	order := new(models.Order)
 	var transactionID sql.NullString
 
 	orderDetails := r.db.QueryRowContext(
 		ctx,
-		"SELECT id, created_at, account_id, total_price, methodofpayment, transactionid, payment_status, order_status FROM orders WHERE id = $1 AND account_id = $2", orderID, accountID,
+		"SELECT id, created_at, account_id, total_price, methodofpayment, transactionid, payment_status, order_status, address_id FROM orders WHERE id = $1 AND account_id = $2", orderID, accountID,
 	)
 	err := orderDetails.Scan(
 		&order.ID,
@@ -117,6 +119,7 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 		&transactionID,
 		&order.PaymentStatus,
 		&order.OrderStatus,
+		&order.AddressId,
 	)
 	if transactionID.Valid {
 		order.TransactionID = transactionID.String
@@ -124,14 +127,6 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Error while fetching order details : %s", err))
 	}
-	log.Printf("Order ID : %s\n", order.ID)
-	log.Printf("Order Created At : %s\n", order.CreatedAt)
-	log.Printf("Order Account ID : %s\n", order.AccountID)
-	log.Printf("Order Total Price : %f\n", order.TotalPrice)
-	log.Printf("Order Method Of Payment : %s\n", order.MethodOfPayment)
-	log.Printf("Order Transaction ID : %s\n", order.TransactionID)
-	log.Printf("Order Payment Status : %s\n", order.PaymentStatus)
-	log.Printf("Order Order Status : %s\n", order.OrderStatus)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -153,7 +148,7 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 	}
 
 	for orderedProducts.Next() {
-		product := new(OrderedProduct)
+		product := new(models.OrderedProduct)
 
 		if err := orderedProducts.Scan(&product.ID, &product.Quantity, &product.Name, &product.Price, &product.ImageURL); err != nil {
 			log.Printf("Failed to scan ordered product: %v", err)
@@ -174,8 +169,8 @@ func (r *postgresRepository) GetOrder(ctx context.Context, orderID, accountID st
 	return order, nil
 }
 
-func (r *postgresRepository) GetOrdersForAccount(ctx context.Context, accountID string) ([]*UserOrder, error) {
-	orders := []*UserOrder{}
+func (r *postgresRepository) GetOrdersForAccount(ctx context.Context, accountID string) ([]*models.UserOrder, error) {
+	orders := []*models.UserOrder{}
 	rows, err := r.db.QueryContext(ctx,
 		"SELECT id, created_at, total_price, order_status FROM orders WHERE account_id = $1", accountID,
 	)
@@ -185,7 +180,7 @@ func (r *postgresRepository) GetOrdersForAccount(ctx context.Context, accountID 
 	}
 	defer rows.Close()
 	for rows.Next() {
-		order := new(UserOrder)
+		order := new(models.UserOrder)
 		if err = rows.Scan(&order.OrderId, &order.CreatedAt, &order.TotalPrice, &order.OrderStatus); err != nil {
 			log.Println(err)
 			return nil, err

@@ -3,6 +3,7 @@ package pb;
 // protoc --go_out=./ --go-grpc_out=./ order.proto
 option go_package = "./pb";
 
+import "google/protobuf/empty.proto";
 message OrderProduct{
   string id = 1;
   string name = 2;
@@ -93,6 +94,30 @@ service OrderService{
   rpc PostOrder(PostOrderRequest) returns (PostOrderResponse) {}
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {}
   rpc GetOrdersForAccount(GetOrdersForAccountRequest) returns (GetOrdersForAccountResponse) {}
+}
+
+
+// proto structure of account service
+
+message GetAddressRequest {
+  string AddressId = 1;
+}
+
+message Account {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string userType = 5;
+}
+
+message AccountResponse {
+  Account account = 1;
+}
+
+service AccountService {
+  rpc GetAccount(google.protobuf.Empty) returns (AccountResponse) {}
+  rpc GetAddress(GetAddressRequest) returns (Address) {}
 }
 
 

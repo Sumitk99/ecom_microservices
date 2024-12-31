@@ -13,6 +13,8 @@ func (s *Server) GetOrder(ctx context.Context, orderId string) (*pb.GetOrderResp
 	if err != nil {
 		return nil, err
 	}
+	log.Println(res.Order.Address)
+
 	return res, nil
 }
 

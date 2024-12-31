@@ -139,7 +139,7 @@ func Checkout(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		log.Printf("%s %s %s\n", form.CartID, form.MethodOfPayment, form.TransactionID)
-		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID)
+		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID, form.AddressId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

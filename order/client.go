@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"github.com/Sumitk99/ecom_microservices/order/models"
 	"github.com/Sumitk99/ecom_microservices/order/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,7 +30,7 @@ func (c *Client) Close() {
 	c.Conn.Close()
 }
 
-func (c *Client) PostOrder(ctx context.Context, accountID string, products []OrderedProduct) (*Order, error) {
+func (c *Client) PostOrder(ctx context.Context, accountID string, products []models.OrderedProduct) (*models.Order, error) {
 	protoProducts := []*pb.PostOrderRequest_OrderProduct{}
 	for _, p := range products {
 		protoProducts = append(protoProducts, &pb.PostOrderRequest_OrderProduct{
@@ -47,8 +48,8 @@ func (c *Client) PostOrder(ctx context.Context, accountID string, products []Ord
 	}
 	newOrder := res.Order
 	newOrderCreatedAt := res.Order.CreatedAt
-	return &Order{
-		ID:         newOrder.Id,
+	return &models.Order{
+		ID:         newOrder.OrderId,
 		CreatedAt:  newOrderCreatedAt,
 		TotalPrice: newOrder.TotalPrice,
 		AccountID:  accountID,

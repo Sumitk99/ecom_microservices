@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/Sumitk99/ecom_microservices/gateway/models"
 	"github.com/Sumitk99/ecom_microservices/gateway/pb"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -86,35 +85,16 @@ func (s *Server) DeleteCart(ctx context.Context) error {
 	return err
 }
 
-func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transactionId string) (*models.Order, error) {
-	log.Printf("Checking out cart %s with method of payment %s and transaction id %s", cartId, methodOfPayment, transactionId)
+func (s *Server) Checkout(ctx context.Context, cartId, methodOfPayment, transactionId, addressId string) (*pb.PostOrderResponse, error) {
 	res, err := s.CartClient.Checkout(ctx, &pb.CheckoutRequest{
 		CartId:          cartId,
 		MethodOfPayment: methodOfPayment,
 		TransactionId:   transactionId,
+		AddressId:       addressId,
 	})
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	Order := &models.Order{
-		OrderID:         res.Order.OrderId,
-		MethodOfPayment: res.Order.MethodOfPayment,
-		TransactionID:   res.Order.TransactionId,
-		PaymentStatus:   res.Order.PaymentStatus,
-		CreatedAt:       res.Order.CreatedAt,
-		TotalPrice:      res.Order.TotalPrice,
-		ETA:             res.Order.ETA,
-		OrderStatus:     res.Order.OrderStatus,
-		Products:        []*models.OrderedProduct{},
-	}
-	for _, product := range res.Order.Products {
-		Order.Products = append(Order.Products, &models.OrderedProduct{
-			ID:       product.ProductId,
-			Name:     product.Name,
-			Price:    product.Price,
-			Quantity: product.Quantity,
-		})
-	}
-	return Order, err
+	return res, err
 }

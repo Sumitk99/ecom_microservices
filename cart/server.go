@@ -75,6 +75,7 @@ func (s *grpcServer) AddItemToCart(ctx context.Context, req *pb.AddToCartRequest
 }
 
 func (s *grpcServer) GetCart(ctx context.Context, req *emptypb.Empty) (*pb.CartResponse, error) {
+	log.Println("GetCart")
 	CartProducts, err := s.service.GetCartItems(ctx)
 	if len(CartProducts) == 0 {
 		return nil, errors.New("Cart is Empty")
@@ -192,7 +193,7 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	account, cart := md.Get("UserID"), md.Get("CartID")
 	var products *pb.CartResponse
 	var err error
-	log.Printf("Account: %d Cart: %d\n", len(account[0]), len(cart[0]))
+
 	if len(account) > 0 && len(cart) > 0 && len(account[0]) > 0 && len(cart[0]) > 0 {
 		products, err = s.GetCart(ctx, &emptypb.Empty{})
 		if err != nil {
@@ -207,6 +208,8 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	orderReq := new(pb.PostOrderRequest)
 	orderReq.AccountId, orderReq.MethodOfPayment = account[0], req.MethodOfPayment
 	orderReq.TransactionId = req.TransactionId
+	orderReq.AddressId = req.AddressId
+
 	if req.MethodOfPayment == "COD" {
 		orderReq.PaymentStatus = "COD"
 	}

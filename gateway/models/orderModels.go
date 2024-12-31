@@ -18,6 +18,7 @@ type Order struct {
 	TransactionID   string            `json:"transaction_id"`
 	PaymentStatus   string            `json:"payment_status"`
 	OrderStatus     string            `json:"order_status"`
+	AddressID       Address           `json:"address_id"`
 }
 
 type UserOrder struct {

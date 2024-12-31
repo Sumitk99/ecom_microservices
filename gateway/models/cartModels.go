@@ -25,6 +25,7 @@ type CheckoutRequest struct {
 	CartID          string `json:"cart_id" validate:"required"`
 	MethodOfPayment string `json:"method_of_payment" validate:"required"`
 	TransactionID   string `json:"transaction_id"`
+	AddressId       string `json:"address_id" validate:"required"`
 }
 
 type GetCartRequest struct {

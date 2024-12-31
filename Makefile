@@ -7,24 +7,29 @@ GATEWAY_CMD = gateway/main.go
 
 # Targets to run each service individually
 run-account:
+	@echo "Starting account service..."
 	go run $(ACCOUNT_CMD)
 
 run-catalog:
+	@echo "Starting catalog service..."
 	go run $(CATALOG_CMD)
 
 run-cart:
+	@echo "Starting cart service..."
 	go run $(CART_CMD)
 
 run-order:
+	@echo "Starting order service..."
 	go run $(ORDER_CMD)
 
 # Target to run the API gateway
 run-gateway:
+	@echo "Starting API gateway..."
 	go run $(GATEWAY_CMD)
 
 # Target to run all services (including gateway) concurrently
 run-all:
-	@echo "Starting all services, including the API gateway..."
+	@echo "Starting all services..."
 	@make -s run-gateway & \
 	make -s run-account & \
 	make -s run-cart & \
@@ -32,7 +37,7 @@ run-all:
 
 # Target to stop all services
 stop-all:
-	@echo "Stopping all services, including the API gateway..."
+	@echo "Stopping all services"
 	@pkill -f $(ACCOUNT_CMD) || true
 	@pkill -f $(CATALOG_CMD) || true
 	@pkill -f $(CART_CMD) || true
