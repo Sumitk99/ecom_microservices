@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Sumitk99/ecom_microservices/catalog"
 	"github.com/Sumitk99/ecom_microservices/order/models"
 	"github.com/Sumitk99/ecom_microservices/order/pb"
 	"google.golang.org/grpc"
@@ -19,7 +18,7 @@ import (
 type grpcServer struct {
 	service       Service
 	accountClient pb.AccountServiceClient
-	catalogClient *catalog.Client
+	catalogClient pb.CatalogServiceClient
 	pb.UnimplementedOrderServiceServer
 }
 
@@ -34,23 +33,28 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 	}
 	AccountService := pb.NewAccountServiceClient(AccountConn)
 
-	catalogClient, err := catalog.NewClient(catalogURL)
+	CatalogConn, err := grpc.NewClient(
+		catalogURL, grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
 	if err != nil {
 		AccountConn.Close()
-		return errors.New("Cannot connect to catalog microservice")
+		return err
 	}
+	CatalogService := pb.NewCatalogServiceClient(CatalogConn)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(fmt.Sprintf(":%d", port)))
 	if err != nil {
 		AccountConn.Close()
-		catalogClient.Close()
+		CatalogConn.Close()
 		return errors.New(fmt.Sprintf("Cannot listen %s", err))
 	}
 	server := grpc.NewServer()
 	pb.RegisterOrderServiceServer(server, &grpcServer{
 		service:                         s,
 		accountClient:                   AccountService,
-		catalogClient:                   catalogClient,
+		catalogClient:                   CatalogService,
 		UnimplementedOrderServiceServer: pb.UnimplementedOrderServiceServer{},
 	})
 	reflection.Register(server) // to avoid sharing .proto files to client
@@ -87,21 +91,22 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 		productIDs = append(productIDs, p.ProductId)
 		IdToQuantity[p.ProductId] = int(p.Quantity)
 	}
-	orderedProducts, err := srv.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
+	orderedProducts, err := srv.catalogClient.GetProducts(ctx, &pb.GetProductsRequest{
+		Ids: productIDs,
+	})
 	if err != nil {
 		log.Println("Error getting products", err)
 		return nil, errors.New("product not found")
 	}
 
 	products := []models.OrderedProduct{}
-	for _, p := range orderedProducts {
+	for _, p := range orderedProducts.Products {
 		products = append(products, models.OrderedProduct{
-			ID:          p.ID,
-			Name:        p.Name,
-			Price:       p.Price,
-			Description: p.Description,
-			Quantity:    uint32(IdToQuantity[p.ID]),
-			ImageURL:    p.ImageUrl,
+			ID:       p.ProductId,
+			Name:     p.Title,
+			Price:    p.Price,
+			Quantity: uint32(IdToQuantity[p.ProductId]),
+			ImageURL: p.ImageURL,
 		})
 	}
 	newMd := metadata.New(map[string]string{

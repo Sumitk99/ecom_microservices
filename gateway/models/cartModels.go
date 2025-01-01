@@ -31,3 +31,7 @@ type CheckoutRequest struct {
 type GetCartRequest struct {
 	CartID string `json:"cart_id" validate:"required"`
 }
+
+type DeleteCartRequest struct {
+	CartID string `json:"cart_id"`
+}

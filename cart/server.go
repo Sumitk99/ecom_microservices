@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/cart/helper"
 	"github.com/Sumitk99/ecom_microservices/cart/pb"
-	"github.com/Sumitk99/ecom_microservices/catalog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
@@ -18,17 +17,19 @@ import (
 
 type grpcServer struct {
 	service       CartService
-	catalogClient *catalog.Client
+	catalogClient pb.CatalogServiceClient
 	OrderClient   pb.OrderServiceClient
 	pb.UnimplementedCartServiceServer
 }
 
 func ListenGRPC(s CartService, catalogURL, orderURL, port string) error {
-	catalogClient, err := catalog.NewClient(catalogURL)
-	log.Println(fmt.Sprintf("Catalog Client: %s", catalogURL))
+	CatalogConn, err := grpc.Dial(catalogURL, grpc.WithInsecure())
 	if err != nil {
-		return errors.New("Cannot connect to catalog microservice")
+		return errors.New("Cannot connect to order microservice")
 	}
+
+	CatalogClient := pb.NewCatalogServiceClient(CatalogConn)
+
 	orderConn, err := grpc.Dial(orderURL, grpc.WithInsecure())
 	if err != nil {
 		return errors.New("Cannot connect to order microservice")
@@ -43,7 +44,7 @@ func ListenGRPC(s CartService, catalogURL, orderURL, port string) error {
 	pb.RegisterCartServiceServer(srv, &grpcServer{
 		service:                        s,
 		OrderClient:                    orderClient,
-		catalogClient:                  catalogClient,
+		catalogClient:                  CatalogClient,
 		UnimplementedCartServiceServer: pb.UnimplementedCartServiceServer{},
 	})
 	reflection.Register(srv)
@@ -53,7 +54,7 @@ func ListenGRPC(s CartService, catalogURL, orderURL, port string) error {
 
 func (s *grpcServer) AddItemToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.CartResponse, error) {
 	log.Println(fmt.Sprintf("AddItemToCart: %s %d", req.ProductId, req.Quantity))
-	_, err := s.catalogClient.GetProduct(ctx, req.ProductId)
+	_, err := s.catalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: req.ProductId})
 	log.Println(fmt.Sprintf("fetched"))
 	if err != nil {
 		log.Println(err)
@@ -83,12 +84,16 @@ func (s *grpcServer) GetCart(ctx context.Context, req *emptypb.Empty) (*pb.CartR
 	IdToQuantity := make(map[string]uint64)
 
 	productIds := helper.MakeProductArray(CartProducts, &IdToQuantity)
-	products, err := s.catalogClient.GetProducts(ctx, 0, 0, *productIds, "")
+	//products, err := s.catalogClient.GetProducts(ctx, 0, 0, *productIds, "")
+	products, err := s.catalogClient.GetProducts(ctx, &pb.GetProductsRequest{
+		Ids: *productIds,
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	CartItems, totalPrice := helper.ProcessCart(products, IdToQuantity)
+	CartItems, totalPrice := helper.ProcessCart(products.Products, IdToQuantity)
 
 	md, _ := metadata.FromIncomingContext(ctx)
 	cart, guestId := md.Get("CartID"), md.Get("GuestID")
@@ -108,7 +113,7 @@ func (s *grpcServer) GetCart(ctx context.Context, req *emptypb.Empty) (*pb.CartR
 }
 
 func (s *grpcServer) RemoveItemFromCart(ctx context.Context, req *pb.RemoveFromCartRequest) (*pb.CartResponse, error) {
-	_, err := s.catalogClient.GetProduct(ctx, req.ProductId)
+	_, err := s.catalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: req.ProductId})
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("product Not Found in catalog: %s", err))
@@ -128,7 +133,7 @@ func (s *grpcServer) RemoveItemFromCart(ctx context.Context, req *pb.RemoveFromC
 }
 
 func (s *grpcServer) UpdateCart(ctx context.Context, req *pb.UpdateCartRequest) (*pb.CartResponse, error) {
-	_, err := s.catalogClient.GetProduct(ctx, req.ProductId)
+	_, err := s.catalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: req.ProductId})
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("product Not Found in catalog: %s", err))

@@ -122,3 +122,55 @@ service AccountService {
 
 
 // proto structure of cart service
+
+// Catalog Service proto file
+
+message GetProductsRequest {
+  uint64 skip = 1;
+  uint64 take = 2;
+  repeated string ids = 3;
+  string query = 4;
+}
+
+message Products {
+  string title = 1;
+  string productId = 2;
+  double price = 3;
+  string sellerName = 4;
+  string imageURL = 5;
+}
+
+message GetProductsResponse {
+  repeated Products products = 1;
+}
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message GetProductResponse {
+  Product product = 1;
+}
+message color {
+  string colorName = 1;
+  string hex = 2;
+}
+
+message Product {
+  string productId = 1;
+  string title = 2;
+  double price = 4;
+  string category = 5;
+  string imageURL = 6;
+  string sellerId = 7;
+  string sellerName = 8;
+  repeated string locations = 9;
+  repeated string sizes = 10;
+  repeated color colors = 11;
+  uint64 availableQuantity = 12;
+}
+
+service CatalogService {
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse) {}
+  rpc GetProducts(GetProductsRequest) returns (GetProductsResponse) {}
+}

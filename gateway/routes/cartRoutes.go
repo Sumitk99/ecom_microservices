@@ -4,7 +4,6 @@ import (
 	controller "github.com/Sumitk99/ecom_microservices/gateway/controllers"
 	"github.com/Sumitk99/ecom_microservices/gateway/middleware"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
-	"github.com/Sumitk99/ecom_microservices/gateway/validator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,10 +18,11 @@ func CartRoutes(router *gin.Engine, srv *server.Server) {
 		controller.AddItemToCart(srv),
 	)
 
-	router.POST(
+	router.GET(
 		"/cart/get",
 		middleware.CartMiddleware(srv),
 		controller.GetCart(srv))
+
 	router.PUT(
 		"/cart/remove",
 		//validator.ValidateRemoveFromCartReq(),
@@ -31,7 +31,7 @@ func CartRoutes(router *gin.Engine, srv *server.Server) {
 	)
 	router.PUT(
 		"/cart/update",
-		validator.ValidateCartOpsReq(),
+		//validator.ValidateCartOpsReq(),
 		middleware.CartMiddleware(srv),
 		controller.UpdateCart(srv),
 	)

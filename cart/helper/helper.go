@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/cart/models"
 	"github.com/Sumitk99/ecom_microservices/cart/pb"
-	catalogProduct "github.com/Sumitk99/ecom_microservices/catalog/models"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/segmentio/ksuid"
 	"log"
@@ -30,19 +29,19 @@ func MakeProductArray(CartProducts []models.CartItem, IdToQuantity *map[string]u
 	return &productIds
 }
 
-func ProcessCart(products []catalogProduct.Product, IdToQuantity map[string]uint64) ([]*pb.CartItem, float64) {
+func ProcessCart(products []*pb.Products, IdToQuantity map[string]uint64) ([]*pb.CartItem, float64) {
 	var CartItems []*pb.CartItem
 	totalPrice := 0.0
 	for _, p := range products {
 		CartItems = append(CartItems, &pb.CartItem{
-			ProductId:  p.ID,
-			Title:      p.Name,
+			ProductId:  p.ProductId,
+			Title:      p.Title,
 			Price:      p.Price,
-			Quantity:   IdToQuantity[p.ID],
-			ImageURL:   p.ImageUrl,
+			Quantity:   IdToQuantity[p.ProductId],
+			ImageURL:   p.ImageURL,
 			SellerName: p.SellerName,
 		})
-		totalPrice += p.Price * float64(IdToQuantity[p.ID])
+		totalPrice += p.Price * float64(IdToQuantity[p.ProductId])
 	}
 	return CartItems, totalPrice
 }

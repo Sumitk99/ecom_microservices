@@ -82,7 +82,7 @@ func RemoveItemFromCart(srv *server.Server) gin.HandlerFunc {
 		if len(form.CartName) == 0 {
 			form.CartName = c.GetString("id")
 		}
-
+		c.Set("CartID", form.CartName)
 		ctx := GetCartContext(c)
 		res, err := srv.RemoveItemFromCart(ctx, form.ProductID)
 		if err != nil {
@@ -101,6 +101,7 @@ func UpdateCart(srv *server.Server) gin.HandlerFunc {
 		if len(form.CartName) == 0 {
 			form.CartName = c.GetString("id")
 		}
+		c.Set("CartID", form.CartName)
 
 		ctx := GetCartContext(c)
 		res, err := srv.UpdateCart(ctx, form.ProductID, form.Quantity)
@@ -115,8 +116,18 @@ func UpdateCart(srv *server.Server) gin.HandlerFunc {
 
 func DeleteCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var form models.DeleteCartRequest
+		err := c.BindJSON(&form)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if len(form.CartID) == 0 {
+			form.CartID = c.GetString("id")
+		}
+		c.Set("CartID", form.CartID)
 		ctx := GetCartContext(c)
-		err := srv.DeleteCart(ctx)
+		err = srv.DeleteCart(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -128,16 +139,19 @@ func DeleteCart(srv *server.Server) gin.HandlerFunc {
 
 func Checkout(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("CartID", c.Request.Header.Get("CartID"))
-		ctx := GetCartContext(c)
-
 		var form models.CheckoutRequest
 		err := c.ShouldBindJSON(&form)
-		form.CartID = c.Request.Header.Get("CartID")
+		if len(form.CartID) == 0 {
+			form.CartID = c.GetString("id")
+		}
+		c.Set("CartID", form.CartID)
+		ctx := GetCartContext(c)
+
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
 		log.Printf("%s %s %s\n", form.CartID, form.MethodOfPayment, form.TransactionID)
 		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID, form.AddressId)
 		if err != nil {
