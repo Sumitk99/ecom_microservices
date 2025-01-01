@@ -170,7 +170,7 @@ func (srv *grpcServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*
 		return nil, err
 	}
 
-	// creating new Metadata as metadata is lost upon modification
+	// creating new Metadata as metadata as lost upon modification
 	newMd := metadata.New(map[string]string{
 		"UserID": accountID,
 	})

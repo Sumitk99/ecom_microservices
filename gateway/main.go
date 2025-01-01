@@ -42,8 +42,9 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	routes.PublicRoutes(router, srv)
-	routes.ProtectedRoutes(router, srv)
+
+	routes.SetupRoutes(router, srv)
+
 	fmt.Println("Gateway Listening on Port 8000")
 	err = router.Run(":8000")
 	if err != nil {

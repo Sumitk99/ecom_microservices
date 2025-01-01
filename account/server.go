@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/account/models"
 	"github.com/Sumitk99/ecom_microservices/account/pb"
-	"github.com/Sumitk99/ecom_microservices/catalog"
 	"github.com/go-playground/validator/v10"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -17,8 +16,7 @@ import (
 )
 
 type grpcServer struct {
-	service       Service
-	catalogClient *catalog.Client
+	service Service
 	pb.UnimplementedAccountServiceServer
 }
 
