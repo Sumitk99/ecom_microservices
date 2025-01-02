@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/GoAdminGroup/themes/adminlte"
 	"github.com/Sumitk99/ecom_microservices/gateway/routes"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"

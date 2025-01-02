@@ -32,6 +32,7 @@ run-all:
 	@echo "Starting all services..."
 	@make -s run-gateway & \
 	make -s run-account & \
+	make -s run-catalog & \
 	make -s run-cart & \
 	make -s run-order
 
