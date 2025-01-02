@@ -18,7 +18,7 @@ func main() {
 	//	log.Fatalf("Error loading .env file: %v", err)
 	//}
 	var cfg Config
-
+	port := os.Getenv("PORT")
 	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
 	if cfg.DatabaseURL == "" {
 		log.Fatal("No DATABASE_URL set")
@@ -32,7 +32,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Account Service Listening on port 8080")
+	log.Printf("Account Service Listening on port %s", port)
 	s := account.NewService(r)
-	log.Fatal(account.ListenGRPC(s, "8080"))
+	log.Fatal(account.ListenGRPC(s, port))
 }
