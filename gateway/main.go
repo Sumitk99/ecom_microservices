@@ -6,7 +6,6 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
@@ -16,10 +15,10 @@ import (
 func main() {
 
 	var router *gin.Engine = gin.New()
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file %s", err)
-	}
+	//err := godotenv.Load()
+	//if err != nil {
+	//	log.Fatalf("Error loading .env file %s", err)
+	//}
 
 	corsPolicy := cors.Config{
 		AllowOrigins:     []string{"http://192.168.205.239:4200", "http://localhost:4200"},
@@ -36,7 +35,7 @@ func main() {
 	orderUrl := os.Getenv("ORDER_SERVICE_URL")
 	cartUrl := os.Getenv("CART_SERVICE_URL")
 	catalogUrl := os.Getenv("CATALOG_SERVICE_URL")
-
+	PORT := os.Getenv("PORT")
 	srv, err := server.NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl)
 	if err != nil {
 		log.Println(err)
@@ -45,7 +44,7 @@ func main() {
 	routes.SetupRoutes(router, srv)
 
 	fmt.Println("Gateway Listening on Port 8000")
-	err = router.Run(":8000")
+	err = router.Run(fmt.Sprintf("0.0.0.0:%s", PORT))
 	if err != nil {
 		log.Println(err)
 	}
