@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Sumitk99/ecom_microservices/account"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
 	"os"
@@ -13,10 +14,10 @@ type Config struct {
 }
 
 func main() {
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file: %v", err)
-	//}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 	var cfg Config
 	port := os.Getenv("PORT")
 	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
