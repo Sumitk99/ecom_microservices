@@ -48,17 +48,18 @@ jobs:
     needs: build
     runs-on: self-hosted
     steps:
+      - name: Navigate to app directory
+        run: cd ~/app
       - name: Pull Docker Image
         run: sudo docker-compose pull
-        working-directory: ~/app
       - name: Remove Old Images
         run: sudo docker-compose down
-        working-directory: ~/app
   deploy:
     needs: prepare
     runs-on: self-hosted
     steps:
+      - name: Navigate to app directory
+        run: cd ~/app
       - name: Run Docker Compose
         run: sudo docker-compose up -d
-        working-directory: ~/app
-          
+
