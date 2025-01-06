@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Create .env file
         run: |
-          echo "PORT=${{ secrets.PORT }}" >> accounts/.env
+          echo "PORT=${{ secrets.PORT }}" >> account/.env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> accounts/.env
           echo "PORT=${{ secrets.PORT }}" >> cart/.env
           echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> cart/.env
