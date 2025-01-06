@@ -48,6 +48,8 @@ jobs:
     needs: build
     runs-on: self-hosted
     steps:
+      - name: Navigate to Docker Compose directory
+        run: cd ~/app
       - name: Pull Docker Image
         run: docker-compose pull
       - name: Remove Old Images
