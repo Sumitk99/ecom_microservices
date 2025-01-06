@@ -10,5 +10,6 @@ FROM alpine:3.19
 ENV PORT=8080
 WORKDIR /usr/bin
 COPY --from=build /build/account .
+COPY .env .
 EXPOSE 8080
 CMD ["./account"]

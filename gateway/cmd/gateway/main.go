@@ -45,6 +45,7 @@ func main() {
 	cfg.CartURL = os.Getenv("CART_SERVICE_URL")
 	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
 	cfg.PORT = os.Getenv("PORT")
+	fmt.Println(cfg)
 	if len(cfg.PORT) == 0 {
 		cfg.PORT = "8080"
 	}
