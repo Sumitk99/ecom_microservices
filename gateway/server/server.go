@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"os"
 )
 
 type Server struct {
@@ -62,8 +63,10 @@ func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl string) (*Server, er
 		return nil, err
 	}
 	CatalogService := pb.NewCatalogServiceClient(CatalogConn)
-
-	cld, err := cloudinary.NewFromParams("dwd3oedmz", "919171763669784", "sXGGnuvVdcHVG4VZZq7fJJCrxcA")
+	CloudID := os.Getenv("CLOUDINARY_CLOUD_ID")
+	APIKey := os.Getenv("CLOUDINARY_API_KEY")
+	APISecret := os.Getenv("CLOUDINARY_API_SECRET")
+	CloudinaryService, err := cloudinary.NewFromParams(CloudID, APIKey, APISecret)
 	if err != nil {
 		log.Println("Failed to initialize Cloudinary: %v", err)
 		CartConn.Close()
@@ -78,6 +81,6 @@ func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl string) (*Server, er
 		CartClient:        CartService,
 		OrderClient:       OrderService,
 		CatalogClient:     CatalogService,
-		CloudinaryStorage: cld,
+		CloudinaryStorage: CloudinaryService,
 	}, nil
 }

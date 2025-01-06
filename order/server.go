@@ -22,7 +22,7 @@ type grpcServer struct {
 	pb.UnimplementedOrderServiceServer
 }
 
-func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
+func ListenGRPC(s Service, accountURL, catalogURL, port string) error {
 	AccountConn, err := grpc.NewClient(
 		accountURL, grpc.WithTransportCredentials(
 			insecure.NewCredentials(),
@@ -44,7 +44,7 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 	}
 	CatalogService := pb.NewCatalogServiceClient(CatalogConn)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(fmt.Sprintf(":%d", port)))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {
 		AccountConn.Close()
 		CatalogConn.Close()

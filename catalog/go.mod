@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/joho/godotenv v1.5.1
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/segmentio/ksuid v1.0.4
 	github.com/tinrab/retry v1.0.0
 	google.golang.org/grpc v1.69.2

@@ -12,7 +12,7 @@ import (
 )
 
 func ListenGRPC(s Service, port string) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {
 		return err
 	}

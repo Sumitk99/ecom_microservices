@@ -6,11 +6,19 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/kelseyhightower/envconfig"
 	_ "github.com/lib/pq"
 	"log"
-	"os"
 	"time"
 )
+
+type Config struct {
+	AccountURL string `envconfig:"ACCOUNT_SERVICE_URL"`
+	OrderURL   string `envconfig:"ORDER_SERVICE_URL"`
+	CartURL    string `envconfig:"CART_SERVICE_URL"`
+	CatalogURL string `envconfig:"CATALOG_SERVICE_URL"`
+	PORT       string `envconfig:"PORT"`
+}
 
 func main() {
 
@@ -31,12 +39,14 @@ func main() {
 	router.Use(cors.New(corsPolicy))
 	router.Use(gin.Logger())
 
-	accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")
-	orderUrl := os.Getenv("ORDER_SERVICE_URL")
-	cartUrl := os.Getenv("CART_SERVICE_URL")
-	catalogUrl := os.Getenv("CATALOG_SERVICE_URL")
-	PORT := os.Getenv("PORT")
-	srv, err := server.NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl)
+	//accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")
+	//orderUrl := os.Getenv("ORDER_SERVICE_URL")
+	//cartUrl := os.Getenv("CART_SERVICE_URL")
+	//catalogUrl := os.Getenv("CATALOG_SERVICE_URL")
+	//PORT := os.Getenv("PORT")
+	var cfg Config
+	err := envconfig.Process("", &cfg)
+	srv, err := server.NewGinServer(cfg.AccountURL, cfg.CartURL, cfg.OrderURL, cfg.CatalogURL)
 	if err != nil {
 		log.Println(err)
 	}
@@ -44,7 +54,7 @@ func main() {
 	routes.SetupRoutes(router, srv)
 
 	fmt.Println("Gateway Listening on Port 8000")
-	err = router.Run(fmt.Sprintf("0.0.0.0:%s", PORT))
+	err = router.Run(fmt.Sprintf("0.0.0.0:%s", cfg.PORT))
 	if err != nil {
 		log.Println(err)
 	}

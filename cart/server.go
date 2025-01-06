@@ -36,7 +36,7 @@ func ListenGRPC(s CartService, catalogURL, orderURL, port string) error {
 	}
 	orderClient := pb.NewOrderServiceClient(orderConn)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {
 		return err
 	}
