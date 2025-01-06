@@ -4,8 +4,6 @@ services:
     build:
       context: ./account
       dockerfile: ./Dockerfile
-    environment:
-      DATABASE_URL:
     ports:
       - 8080:8080
     restart: on-failure
@@ -15,42 +13,28 @@ services:
     build:
       context: ./cart
       dockerfile: ./Dockerfile
-    environment:
-      CATALOG_SERVICE_URL: catalog:8080
-      ORDER_SERVICE_URL: order:8080
-      DATABASE_URL:
     ports:
       - 8081:8080
     restart: on-failure
     image: sumitk999/cart:latest
 
-
   catalog:
     build:
       context: ./catalog
       dockerfile: ./Dockerfile
-    environment:
-      ELASTIC_SEARCH_CLOUD_ID:
-      ELASTIC_SEARCH_API_KEY :
     ports:
       - 8082:8080
     restart: on-failure
     image: sumitk999/catalog:latest
 
-
   order:
     build:
       context: ./order
       dockerfile: ./Dockerfile
-    environment:
-      DATABASE_URL:
-      CATALOG_SERVICE_URL:  catalog:8080
-      ACCOUNT_SERVICE_URL:  account:8080
     ports:
       - 8083:8080
     restart: on-failure
     image: sumitk999/order:latest
-
 
   gateway:
     build:
@@ -63,10 +47,5 @@ services:
       - catalog
       - order
       - cart
-    environment:
-      ACCOUNT_SERVICE_URL:  account:8080
-      CATALOG_SERVICE_URL: catalog:8080
-      ORDER_SERVICE_URL: order:8080
-      CART_SERVICE_URL: cart:8080
     restart: on-failure
     image: sumitk999/gateway:latest

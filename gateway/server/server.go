@@ -66,6 +66,7 @@ func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl string) (*Server, er
 	CloudID := os.Getenv("CLOUDINARY_CLOUD_ID")
 	APIKey := os.Getenv("CLOUDINARY_API_KEY")
 	APISecret := os.Getenv("CLOUDINARY_API_SECRET")
+	log.Println(CloudID, APIKey, APISecret)
 	CloudinaryService, err := cloudinary.NewFromParams(CloudID, APIKey, APISecret)
 	if err != nil {
 		log.Println("Failed to initialize Cloudinary: %v", err)

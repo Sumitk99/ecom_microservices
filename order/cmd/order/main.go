@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/order"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
+	"os"
 	"time"
 )
 
@@ -16,18 +18,19 @@ type Config struct {
 }
 
 func main() {
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file: %v", err)
-	//}
-	var cfg Config
-	err := envconfig.Process("", &cfg)
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error loading .env file: %v", err)
 	}
-	//cfg.DatabaseURL = os.Getenv("DATABASE_URL")
-	//cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
-	//cfg.AccountURL = os.Getenv("ACCOUNT_SERVICE_URL")
+	var cfg Config
+	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
+	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.AccountURL = os.Getenv("ACCOUNT_SERVICE_URL")
+	cfg.PORT = os.Getenv("PORT")
+
+	if len(cfg.PORT) == 0 {
+		cfg.PORT = "8080"
+	}
 	var r order.Repository
 	retry.ForeverSleep(2*time.Second, func(_ int) (err error) {
 		r, err = order.NewPostgresRepository(cfg.DatabaseURL)
@@ -39,7 +42,7 @@ func main() {
 
 	defer r.Close()
 
-	log.Println("Order Service Listening on port 8085")
+	log.Println(fmt.Sprintf("Order Service Listening on port %s", cfg.PORT))
 	s := order.NewService(r)
 
 	log.Fatal(order.ListenGRPC(s, cfg.AccountURL, cfg.CatalogURL, cfg.PORT))

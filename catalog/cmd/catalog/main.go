@@ -1,36 +1,33 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
+	"os"
 	"time"
 )
 
 type Config struct {
-	CloudID string `envconfig:"ELASTIC_SEARCH_CLOUD_ID"`
-	ApiKey  string `envconfig:"ELASTIC_SEARCH_API_KEY"`
-	PORT    string `envconfig:"PORT"`
+	CloudID string
+	ApiKey  string
+	PORT    string
 }
 
 func main() {
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file: %v", err)
-	//}
-	var cfg Config
-	err := envconfig.Process("", &cfg)
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error loading .env file: %v", err)
 	}
-	//cfg.cloudID = os.Getenv("ELASTIC_SEARCH_CLOUD_ID")
-	//cfg.apiKey = os.Getenv("ELASTIC_SEARCH_API_KEY")
-	//cfg.PORT = os.Getenv("PORT")
-	fmt.Printf("Error: %s\n", err)
-	fmt.Printf("Cloud ID: %s\n", cfg.CloudID)
-	fmt.Printf("API Key: %s\n", cfg.ApiKey)
+	var cfg Config
+	cfg.CloudID = os.Getenv("ELASTIC_SEARCH_CLOUD_ID")
+	cfg.ApiKey = os.Getenv("ELASTIC_SEARCH_API_KEY")
+	cfg.PORT = os.Getenv("PORT")
+	if len(cfg.PORT) == 0 {
+		cfg.PORT = "8080"
+	}
+
 	if len(cfg.CloudID) == 0 || len(cfg.ApiKey) == 0 {
 		log.Fatal("Elastic search cloud id and api key are required")
 	}

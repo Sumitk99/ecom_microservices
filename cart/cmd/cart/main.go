@@ -1,34 +1,34 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Sumitk99/ecom_microservices/cart"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/joho/godotenv"
 	"github.com/tinrab/retry"
 	"log"
+	"os"
 	"time"
 )
 
 type Config struct {
-	DatabaseURL string `envconfig:"DATABASE_URL"`
-	CatalogURL  string `envconfig:"DATABASE_URL"`
-	PORT        string `envconfig:"PORT"`
-	OrderURL    string `envconfig:"DATABASE_URL"`
+	DatabaseURL string
+	CatalogURL  string
+	PORT        string
+	OrderURL    string
 }
 
 func main() {
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file: %v", err)
-	//}
-	var cfg Config
-	//
-	//cfg.DatabaseURL = os.Getenv("DATABASE_URL")
-	//cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
-	//cfg.OrderURL = os.Getenv("ORDER_SERVICE_URL")
-	err := envconfig.Process("", &cfg)
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error loading .env file: %v", err)
 	}
+	var cfg Config
+
+	cfg.DatabaseURL = os.Getenv("DATABASE_URL")
+	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.OrderURL = os.Getenv("ORDER_SERVICE_URL")
+	cfg.PORT = os.Getenv("PORT")
+
 	if len(cfg.DatabaseURL) == 0 {
 		log.Fatal("No DATABASE_URL set")
 	}
@@ -37,6 +37,9 @@ func main() {
 	}
 	if len(cfg.OrderURL) == 0 {
 		log.Fatal("No ORDER_SERVICE_URL set")
+	}
+	if len(cfg.PORT) == 0 {
+		cfg.PORT = "8080"
 	}
 
 	var r cart.Repository
@@ -48,8 +51,7 @@ func main() {
 		return
 	})
 	defer r.Close()
-	log.Println("Cart Service Listening on port 8083")
+	log.Println(fmt.Sprintf("Cart Service Listening on port %s\n", cfg.PORT))
 	s := cart.NewService(r)
 	log.Fatal(cart.ListenGRPC(s, cfg.CatalogURL, cfg.OrderURL, cfg.PORT))
-
 }

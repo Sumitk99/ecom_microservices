@@ -6,27 +6,28 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
+	"os"
 	"time"
 )
 
 type Config struct {
-	AccountURL string `envconfig:"ACCOUNT_SERVICE_URL"`
-	OrderURL   string `envconfig:"ORDER_SERVICE_URL"`
-	CartURL    string `envconfig:"CART_SERVICE_URL"`
-	CatalogURL string `envconfig:"CATALOG_SERVICE_URL"`
-	PORT       string `envconfig:"PORT"`
+	AccountURL string
+	OrderURL   string
+	CartURL    string
+	CatalogURL string
+	PORT       string
 }
 
 func main() {
 
 	var router *gin.Engine = gin.New()
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file %s", err)
-	//}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file %s", err)
+	}
 
 	corsPolicy := cors.Config{
 		AllowOrigins:     []string{"http://192.168.205.239:4200", "http://localhost:4200"},
@@ -38,14 +39,15 @@ func main() {
 	}
 	router.Use(cors.New(corsPolicy))
 	router.Use(gin.Logger())
-
-	//accountUrl := os.Getenv("ACCOUNT_SERVICE_URL")
-	//orderUrl := os.Getenv("ORDER_SERVICE_URL")
-	//cartUrl := os.Getenv("CART_SERVICE_URL")
-	//catalogUrl := os.Getenv("CATALOG_SERVICE_URL")
-	//PORT := os.Getenv("PORT")
 	var cfg Config
-	err := envconfig.Process("", &cfg)
+	cfg.AccountURL = os.Getenv("ACCOUNT_SERVICE_URL")
+	cfg.OrderURL = os.Getenv("ORDER_SERVICE_URL")
+	cfg.CartURL = os.Getenv("CART_SERVICE_URL")
+	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.PORT = os.Getenv("PORT")
+	if len(cfg.PORT) == 0 {
+		cfg.PORT = "8080"
+	}
 	srv, err := server.NewGinServer(cfg.AccountURL, cfg.CartURL, cfg.OrderURL, cfg.CatalogURL)
 	if err != nil {
 		log.Println(err)
@@ -53,9 +55,9 @@ func main() {
 
 	routes.SetupRoutes(router, srv)
 
-	fmt.Println("Gateway Listening on Port 8000")
+	fmt.Println(fmt.Sprintf("Gateway Listening on Port %s\n", cfg.PORT))
 	err = router.Run(fmt.Sprintf("0.0.0.0:%s", cfg.PORT))
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 }
