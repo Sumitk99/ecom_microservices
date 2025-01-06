@@ -44,17 +44,21 @@ jobs:
         run: docker-compose build
       - name: Push Docker Image
         run: docker-compose push
-  deploy:
+  prepare:
     needs: build
     runs-on: self-hosted
     steps:
-      - name: Navigate to Docker Compose directory
-        run: cd ~/app
       - name: Pull Docker Image
         run: sudo docker-compose pull
+        working-directory: ~/app
       - name: Remove Old Images
         run: sudo docker-compose down
+        working-directory: ~/app
+  deploy:
+    needs: prepare
+    runs-on: self-hosted
+    steps:
       - name: Run Docker Compose
         run: sudo docker-compose up -d
-
+        working-directory: ~/app
           
