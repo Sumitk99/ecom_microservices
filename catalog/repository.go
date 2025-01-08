@@ -9,7 +9,9 @@ import (
 	"github.com/Sumitk99/ecom_microservices/catalog/models"
 	"github.com/elastic/go-elasticsearch/v8"
 	"log"
+	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -33,20 +35,43 @@ type elasticRepository struct {
 
 func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
 
-	client, err := elasticsearch.NewClient(
-		elasticsearch.Config{
-			CloudID: cloudId,
-			APIKey:  apiKey,
+	//client, err := elasticsearch.NewClient(
+	//	elasticsearch.Config{
+	//		Addresses: []string{"http://localhost:9200"},
+	//		Transport: &http.Transport{
+	//			ResponseHeaderTimeout: time.Second * 10,
+	//		},
+	//	},
+	//)
+	//if err != nil {
+	//	return nil, fmt.Errorf("error creating elasticsearch client: %w", err)
+	//}
+	//_, err = client.Info()
+	//if err != nil {
+	//	return nil, fmt.Errorf("error getting cluster info: %w", err)
+	//}
+	cfg := elasticsearch.Config{
+		Addresses: []string{"http://elasticsearch:9200"},
+		Transport: &http.Transport{
+			ResponseHeaderTimeout: time.Second * 10,
 		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error creating elasticsearch client: %w", err)
 	}
-	_, err = client.Info()
+
+	esClient, err := elasticsearch.NewClient(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("error getting cluster info: %w", err)
+		log.Fatalf("Error creating Elasticsearch client: %v", err)
 	}
-	return &elasticRepository{client: client}, nil
+	res, err := esClient.Info()
+	if err != nil {
+		log.Fatalf("Error getting cluster info: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		log.Fatalf("Error response from Elasticsearch: %s", res.String())
+	}
+
+	return &elasticRepository{client: esClient}, nil
 }
 
 func (r *elasticRepository) Close() error {
@@ -67,7 +92,6 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p models.Product) er
 		Sizes:       p.Sizes,
 		Colors:      p.Colors,
 	}
-
 	jsonDoc, err := json.Marshal(doc)
 	if err != nil {
 		log.Fatalf("Error marshalling document: %s", err)
