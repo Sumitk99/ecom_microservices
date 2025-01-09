@@ -53,7 +53,7 @@ jobs:
       - name: Pull Docker Image
         run: sudo docker-compose pull
       - name: Remove Old Images
-        run: sudo docker-compose down
+        run: sudo docker compose down
   deploy:
     needs: prepare
     runs-on: self-hosted
@@ -61,5 +61,5 @@ jobs:
       - name: Navigate to app directory
         run: cd ~/app
       - name: Run Docker Compose
-        run: sudo docker-compose up -d
+        run: sudo docker compose up -d
 
