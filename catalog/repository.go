@@ -9,9 +9,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/catalog/models"
 	"github.com/elastic/go-elasticsearch/v8"
 	"log"
-	"net/http"
 	"strings"
-	"time"
 )
 
 var (
@@ -35,43 +33,41 @@ type elasticRepository struct {
 
 func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
 
-	//client, err := elasticsearch.NewClient(
-	//	elasticsearch.Config{
-	//		Addresses: []string{"http://localhost:9200"},
-	//		Transport: &http.Transport{
-	//			ResponseHeaderTimeout: time.Second * 10,
-	//		},
-	//	},
-	//)
-	//if err != nil {
-	//	return nil, fmt.Errorf("error creating elasticsearch client: %w", err)
-	//}
-	//_, err = client.Info()
-	//if err != nil {
-	//	return nil, fmt.Errorf("error getting cluster info: %w", err)
-	//}
-	cfg := elasticsearch.Config{
-		Addresses: []string{"http://elasticsearch:9200"},
-		Transport: &http.Transport{
-			ResponseHeaderTimeout: time.Second * 10,
+	client, err := elasticsearch.NewClient(
+		elasticsearch.Config{
+			CloudID: cloudId,
+			APIKey:  apiKey,
 		},
-	}
-
-	esClient, err := elasticsearch.NewClient(cfg)
+	)
 	if err != nil {
-		log.Fatalf("Error creating Elasticsearch client: %v", err)
+		return nil, fmt.Errorf("error creating elasticsearch client: %w", err)
 	}
-	res, err := esClient.Info()
+	res, err := client.Info()
 	if err != nil {
-		log.Fatalf("Error getting cluster info: %v", err)
+		return nil, fmt.Errorf("error getting cluster info: %w", err)
 	}
+	//cfg := elasticsearch.Config{
+	//	Addresses: []string{"http://elasticsearch:9200"},
+	//	Transport: &http.Transport{
+	//		ResponseHeaderTimeout: time.Second * 10,
+	//	},
+	//}
+	//
+	//esClient, err := elasticsearch.NewClient(cfg)
+	//if err != nil {
+	//	log.Fatalf("Error creating Elasticsearch client: %v", err)
+	//}
+	//res, err := esClient.Info()
+	//if err != nil {
+	//	log.Fatalf("Error getting cluster info: %v", err)
+	//}
 	defer res.Body.Close()
 
 	if res.IsError() {
 		log.Fatalf("Error response from Elasticsearch: %s", res.String())
 	}
 
-	return &elasticRepository{client: esClient}, nil
+	return &elasticRepository{client: client}, nil
 }
 
 func (r *elasticRepository) Close() error {
