@@ -13,19 +13,27 @@ jobs:
         uses: actions/checkout@v4
       - name: Create .env files
         run: |
-          declare -A service_vars=(
-            ["account"]="PORT DATABASE_URL"
-            ["cart"]="PORT CATALOG_SERVICE_URL ORDER_SERVICE_URL DATABASE_URL"
-            ["order"]="PORT DATABASE_URL CATALOG_SERVICE_URL ACCOUNT_SERVICE_URL"
-            ["catalog"]="PORT ELASTIC_SEARCH_CLOUD_ID ELASTIC_SEARCH_API_KEY"
-            ["gateway"]="PORT ACCOUNT_SERVICE_URL CATALOG_SERVICE_URL CART_SERVICE_URL ORDER_SERVICE_URL CLOUDINARY_CLOUD_ID CLOUDINARY_API_KEY CLOUDINARY_API_SECRET"
-          )
-          for service in "${!service_vars[@]}"; do
-            echo "Creating .env for $service"
-            for var in ${service_vars[$service]}; do
-              echo "$var=${{ secrets.${var} }}" >> $service/.env
-            done
-          done
+          echo "PORT=${{ secrets.PORT }}" >> account/.env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> account/.env
+          echo "PORT=${{ secrets.PORT }}" >> cart/.env
+          echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> cart/.env
+          echo "ORDER_SERVICE_URL=${{ secrets.ORDER_SERVICE_URL }}" >> cart/.env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> cart/.env
+          echo "PORT=${{ secrets.PORT }}" >> order/.env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> order/.env
+          echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> order/.env
+          echo "ACCOUNT_SERVICE_URL=${{ secrets.ACCOUNT_SERVICE_URL }}" >> order/.env  
+          echo "PORT=${{ secrets.PORT }}" >> catalog/.env
+          echo "ELASTIC_SEARCH_CLOUD_ID=${{ secrets.ELASTIC_SEARCH_CLOUD_ID }}" >> catalog/.env
+          echo "ELASTIC_SEARCH_API_KEY=${{ secrets.ELASTIC_SEARCH_API_KEY }}" >> catalog/.env
+          echo "PORT=${{ secrets.PORT }}" >> gateway/.env
+          echo "ACCOUNT_SERVICE_URL=${{ secrets.ACCOUNT_SERVICE_URL }}" >> gateway/.env
+          echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> gateway/.env
+          echo "CART_SERVICE_URL=${{ secrets.CART_SERVICE_URL }}" >> gateway/.env
+          echo "ORDER_SERVICE_URL=${{ secrets.ORDER_SERVICE_URL }}" >> gateway/.env
+          echo "CLOUDINARY_CLOUD_ID=${{ secrets.CLOUDINARY_CLOUD_ID }}" >> gateway/.env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> gateway/.env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> gateway/.env
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
