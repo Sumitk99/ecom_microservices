@@ -1,0 +1,57 @@
+name: Deploy on AWS
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create .env files
+        run: |
+          declare -A service_vars=(
+            ["account"]="PORT DATABASE_URL"
+            ["cart"]="PORT CATALOG_SERVICE_URL ORDER_SERVICE_URL DATABASE_URL"
+            ["order"]="PORT DATABASE_URL CATALOG_SERVICE_URL ACCOUNT_SERVICE_URL"
+            ["catalog"]="PORT ELASTIC_SEARCH_CLOUD_ID ELASTIC_SEARCH_API_KEY"
+            ["gateway"]="PORT ACCOUNT_SERVICE_URL CATALOG_SERVICE_URL CART_SERVICE_URL ORDER_SERVICE_URL CLOUDINARY_CLOUD_ID CLOUDINARY_API_KEY CLOUDINARY_API_SECRET"
+          )
+          for service in "${!service_vars[@]}"; do
+            echo "Creating .env for $service"
+            for var in ${service_vars[$service]}; do
+              echo "$var=${{ secrets.${var} }}" >> $service/.env
+            done
+          done
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+      - name: Login to Docker
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build Docker Image
+        run: docker-compose -f docker-compose-prod.yaml build
+      - name: Push Docker Image
+        run: docker-compose -f docker-compose-prod.yaml push
+  prepare:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update docker-compose file
+        run: |
+          mkdir -p /home/ubuntu/app-config
+          cp docker-compose-prod.yml /home/ubuntu/app-config/
+      - name: Pull Docker Image
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml pull
+  deploy:
+    needs: prepare
+    runs-on: self-hosted
+    steps:
+      - name: Run Docker Compose
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml up -d

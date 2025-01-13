@@ -41,7 +41,7 @@ jobs:
       - name: Login to Docker
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       - name: Build Docker Image
-        run: docker-compose build
+        run: docker-compose -f docker-compose-prod.yaml build
       - name: Push Docker Image
         run: docker-compose push
   prepare:
