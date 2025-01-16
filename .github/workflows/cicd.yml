@@ -3,7 +3,7 @@ name: Deploy on AWS
 on:
   push:
     branches:
-      - master
+      - test
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Create .env file
+      - name: Create .env files
         run: |
           echo "PORT=${{ secrets.PORT }}" >> account/.env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> account/.env
@@ -43,23 +43,24 @@ jobs:
       - name: Build Docker Image
         run: docker-compose -f docker-compose-prod.yaml build
       - name: Push Docker Image
-        run: docker-compose push
+        run: docker-compose -f docker-compose-prod.yaml push
   prepare:
     needs: build
     runs-on: self-hosted
     steps:
-      - name: Navigate to app directory
-        run: cd ~/app
-      - name: Pull Docker Image
-        run: sudo docker compose pull
+      - uses: actions/checkout@v4
       - name: Remove Old Images
-        run: sudo docker compose down
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml down
+      - name: Update docker-compose file
+        run: cp docker-compose-prod.yaml /home/ubuntu/app-config/
+      - name: Pull Docker Image
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml pull
   deploy:
     needs: prepare
     runs-on: self-hosted
     steps:
-      - name: Navigate to app directory
-        run: cd ~/app
       - name: Run Docker Compose
-        run: sudo docker compose up -d
-
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml up -d

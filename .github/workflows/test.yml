@@ -49,10 +49,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+      - name: Remove Old Images
+        working-directory: /home/ubuntu/app-config
+        run: sudo docker compose -f docker-compose-prod.yaml down
       - name: Update docker-compose file
-        run: |
-          mkdir -p /home/ubuntu/app-config
-          cp docker-compose-prod.yaml /home/ubuntu/app-config/
+        run: cp docker-compose-prod.yaml /home/ubuntu/app-config/
       - name: Pull Docker Image
         working-directory: /home/ubuntu/app-config
         run: sudo docker compose -f docker-compose-prod.yaml pull
