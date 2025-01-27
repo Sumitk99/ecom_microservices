@@ -52,6 +52,7 @@ jobs:
       - name: Remove Old Images
         working-directory: /home/ubuntu/app-config
         run: sudo docker compose -f docker-compose-prod.yaml down
+        continue-on-error: true
       - name: Update docker-compose file
         run: cp docker-compose-prod.yaml /home/ubuntu/app-config/
       - name: Pull Docker Image

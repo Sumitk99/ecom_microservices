@@ -39,6 +39,7 @@ services:
     build:
       context: ./gateway
       dockerfile: ./Dockerfile
+      target: dev
     ports:
       - 8084:8080
     depends_on:
@@ -48,7 +49,14 @@ services:
       - cart
     restart: on-failure
     image: sumitk999/gateway:latest
+    volumes:
+      - ./gateway:/app
+      - /app/tmp
+    environment:
+      GIN_MODE: "debug"
 
-volumes:
-  elasticsearch-data:
-    driver: local
+
+
+# Instead of mounting a volume, you can now use
+ # docker compose watch feature in copy mode to
+  # make docker copy files into the container once they are changed.

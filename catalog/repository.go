@@ -46,21 +46,6 @@ func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting cluster info: %w", err)
 	}
-	//cfg := elasticsearch.Config{
-	//	Addresses: []string{"http://elasticsearch:9200"},
-	//	Transport: &http.Transport{
-	//		ResponseHeaderTimeout: time.Second * 10,
-	//	},
-	//}
-	//
-	//esClient, err := elasticsearch.NewClient(cfg)
-	//if err != nil {
-	//	log.Fatalf("Error creating Elasticsearch client: %v", err)
-	//}
-	//res, err := esClient.Info()
-	//if err != nil {
-	//	log.Fatalf("Error getting cluster info: %v", err)
-	//}
 	defer res.Body.Close()
 
 	if res.IsError() {

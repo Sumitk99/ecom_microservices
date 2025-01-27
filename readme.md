@@ -5,7 +5,7 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 
 ## Project Structure
-
+![Microservices Architecture](images/architecture.png)
 - `account`: Manages user accounts.
 - `catalog`: Manages product catalog.
 - `order`: Manages orders and order processing.
