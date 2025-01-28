@@ -60,25 +60,27 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 ## Usage
 
-### Account Service
+### Deployed on : https://micro-scale.software/
+
+### Account Routes
 
 - **Login**: `POST /login`
 - **Signup**: `POST /signup`
 - **Create Account**: `POST /account`
 - **Get Account**: `GET /account/{id}`
 
-### Catalog Service
+### Catalog Routes
 
 - **Add Product**: `POST /product`
 - **Get Products**: `GET /products`
 
-### Order Service
+### Order Routes
 
 - **Place Order**: `POST /order`
 - **Get Order**: `GET /order/{id}`
 - **Get Orders for Account**: `GET /orders/account/{accountId}`
 
-### Cart Service
+### Cart Routes
 
 - **Add to Cart**: `POST /cart/add/{id}`
 - **Get Cart**: `GET /cart/get/{id}`
