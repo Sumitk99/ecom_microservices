@@ -39,7 +39,6 @@ services:
     build:
       context: ./gateway
       dockerfile: ./Dockerfile
-      target: dev
     ports:
       - 8084:8080
     depends_on:
