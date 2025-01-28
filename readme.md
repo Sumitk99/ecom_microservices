@@ -6,7 +6,7 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 ## Project Structure
 ![Microservices Architecture](images/architecture.png)
-- `account`: Manages user accounts.
+- `account`: Manages user accounts and addresses.
 - `catalog`: Manages product catalog.
 - `order`: Manages orders and order processing.
 - `cart`: Manages user shopping carts.
@@ -18,14 +18,14 @@ This project is an advanced e-commerce platform designed using a microservices a
 - **gRPC**: Communication protocol between microservices.
 - **PostgreSQL**: Database used for storing data.
 - **Protocol Buffers**: Used for defining gRPC services.
+- **Elasticsearch**: Used for searching products.
 - **Docker**: Containerization of services.
+- **AWS EC2**: Deployment of services.
+- **Nginx**: To Secure Server with HTTPS and Reverse proxy To API Gateway.
 
 ## Prerequisites
 
-- Go 1.20+
 - Docker
-- PostgreSQL
-
 ## Setup
 
 1. **Clone the repository**:
@@ -62,6 +62,8 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 ### Account Service
 
+- **Login**: `POST /login`
+- **Signup**: `POST /signup`
 - **Create Account**: `POST /account`
 - **Get Account**: `GET /account/{id}`
 
@@ -96,3 +98,4 @@ This project is an advanced e-commerce platform designed using a microservices a
 - **gRPC for Communication**: Efficient and high-performance communication.
 - **Database**: PostgreSQL is robust and scalable.
 - **Retry Logic**: Ensures resilience and scalability.
+
