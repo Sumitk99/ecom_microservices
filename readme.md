@@ -4,8 +4,8 @@
 This project is an advanced e-commerce platform designed using a microservices architecture ensuring **Scability**, **Reliability** and **Avoiding Single Point of Failure**. The services communicate with each other using **gRPC** which uses **Protobufs**, ensuring efficient and high-performance interactions. The primary services include account, catalog, order, cart, and an API gateway for routing requests to the appropriate services.
 
 
-## Project Structure
-![Microservices Architecture](images/architecture.png)
+## Microservices Architecture
+![Microservices Architecture](https://res.cloudinary.com/dwd3oedmz/image/upload/v1738262722/readme/ynfct0vd3kxbqyd8w5to.png)
 - `account`: Manages user accounts and addresses.
 - `catalog`: Manages product catalog.
 - `order`: Manages orders and order processing.
@@ -25,21 +25,27 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 ## Prerequisites
 
-- Docker
-## Setup
+- Docker or Go
 
+## Setup
+### Using Docker
+1. **Copy Docker Compose File**:
+
+2. **Pull Docker Images**:
+    ```sh
+    docker compose pull
+    ```
+3. **Run Docker Compose**:
+    ```sh
+    docker compose up
+    ```
+### Local Setup
 1. **Clone the repository**:
     ```sh
     git clone https://github.com/Sumitk99/ecom_microservices.git
     cd ecom_microservices
     ```
-
-2. **Run PostgreSQL**:
-    ```sh
-    docker run --name postgres -e POSTGRES_PASSWORD=yourpassword -d -p 5432:5432 postgres
-    ```
-
-3. **Set up environment variables**:
+2. **Set up environment variables**:
    Create a `.env` file in the root directory and add the following:
     ```env
     POSTGRES_USER=yourusername
@@ -49,30 +55,28 @@ This project is an advanced e-commerce platform designed using a microservices a
     POSTGRES_PORT=5432
     ```
 
-4. **Run the services**:
+3. **Run the services**:
     ```sh
-    go run account/main.go
-    go run catalog/main.go
-    go run order/main.go
-    go run cart/main.go
-    go run gateway/main.go
+    make run-all
     ```
 
 ## Usage
 
-### Deployed on : https://micro-scale.software/
+### Deployed on : https://micro-scale.software/api
 
 ### Account Routes
 
 - **Login**: `POST /login`
 - **Signup**: `POST /signup`
 - **Create Account**: `POST /account`
-- **Get Account**: `GET /account/{id}`
+- **Get Account**: `GET /account`
 
 ### Catalog Routes
 
-- **Add Product**: `POST /product`
+- **Add Product**: `POST /product/add`
+- Get Product by ID: `GET /product/{id}`
 - **Get Products**: `GET /products`
+- **Search Products**: `GET /products?search={keyword}`}`
 
 ### Order Routes
 
@@ -93,6 +97,9 @@ This project is an advanced e-commerce platform designed using a microservices a
 - **Catalog Service**: `catalog.proto`
 - **Order Service**: `order.proto`
 - **Cart Service**: `cart.proto`
+
+## CI/CD Pipeline
+![Microservices Architecture](https://res.cloudinary.com/dwd3oedmz/image/upload/v1738262722/readme/fekxw9lt2mmetlr0p76z.png)
 
 ## Scalability Considerations
 
