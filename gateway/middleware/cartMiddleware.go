@@ -12,6 +12,7 @@ import (
 func CartMiddleware(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("cart middleware")
+		fmt.Println(c.Request.Header.Get("authorization"))
 		clientToken := c.Request.Header.Get("authorization")
 		guestToken := c.Request.Header.Get("guestAuth")
 		fmt.Println(clientToken)

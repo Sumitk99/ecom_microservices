@@ -4,6 +4,7 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/models"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -16,6 +17,7 @@ func GetAddresses(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, addresses)
+
 	}
 }
 
@@ -40,10 +42,11 @@ func AddAddress(srv *server.Server) gin.HandlerFunc {
 func DeleteAddress(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := CreateUserMetaData(c)
-		addressId := c.Param("id")
+		addressId := c.Param("address_id")
 		err := srv.DeleteAddress(ctx, addressId)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Print(err)
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Address deleted successfully"})

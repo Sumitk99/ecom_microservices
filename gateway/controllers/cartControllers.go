@@ -6,10 +6,15 @@ import (
 	"github.com/Sumitk99/ecom_microservices/gateway/models"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
+	"strconv"
 )
+
+const AlreadyExists = "rpc error: code = Unknown desc = cannot add item to cart : Item already exists in selected cart"
 
 func RequestGuestId(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -25,23 +30,31 @@ func RequestGuestId(srv *server.Server) gin.HandlerFunc {
 
 func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var form models.CartOpsReq
-		err := c.BindJSON(&form)
-		if len(form.CartName) == 0 {
-			form.CartName = c.GetString("id")
-		}
-		c.Set("CartID", form.CartName)
-		ctx := GetCartContext(c)
-		if err != nil {
-			c.JSON(400, gin.H{"error": err})
+		cartName := c.Param("cart_name")
+		productId := c.Param("product_id")
+		quantity := c.Param("quantity")
+		if len(productId) == 0 || len(quantity) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ProductID and Quantity are required"})
 			return
 		}
-		res, err := srv.AddItemToCart(ctx, form.ProductID, form.Quantity)
+		if len(cartName) == 0 {
+			cartName = c.GetString("id")
+		}
+		c.Set("CartID", cartName)
+		ctx := GetCartContext(c)
+		Quantity, err := strconv.Atoi(quantity)
 		if err != nil {
-			if err.Error() == "Item already exists in selected cart" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Quantity"})
+			return
+		}
+		res, err := srv.AddItemToCart(ctx, productId, uint64(Quantity))
+		if err != nil {
+			state, _ := status.FromError(err)
+			if state.Code() == codes.AlreadyExists {
+				c.JSON(http.StatusConflict, gin.H{"error": AlreadyExists})
 				return
 			}
+
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -52,21 +65,21 @@ func AddItemToCart(srv *server.Server) gin.HandlerFunc {
 
 func GetCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var form models.GetCartRequest
-		err := c.BindJSON(&form)
-		if len(form.CartID) == 0 {
-			form.CartID = c.GetString("id")
-		}
+		log.Println("Get Cart")
 
-		c.Set("CartID", form.CartID)
-		ctx := GetCartContext(c)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse CartID"})
-			return
+		cartId := c.Param("cart_id")
+		if len(cartId) == 0 {
+			cartId = c.GetString("id")
 		}
+		log.Println(cartId)
+		c.Set("CartID", cartId)
+		ctx := GetCartContext(c)
 
 		res, err := srv.GetCart(ctx)
+		log.Println(res, err)
+
 		if err != nil {
+			log.Println(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -77,14 +90,18 @@ func GetCart(srv *server.Server) gin.HandlerFunc {
 
 func RemoveItemFromCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var form models.CartOpsReq
-		err := c.BindJSON(&form)
-		if len(form.CartName) == 0 {
-			form.CartName = c.GetString("id")
+		cartId := c.Param("cart_id")
+		productId := c.Param("product_id")
+		if len(cartId) == 0 {
+			cartId = c.GetString("id")
 		}
-		c.Set("CartID", form.CartName)
+		if len(productId) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ProductID is required"})
+			return
+		}
+		c.Set("CartID", cartId)
 		ctx := GetCartContext(c)
-		res, err := srv.RemoveItemFromCart(ctx, form.ProductID)
+		res, err := srv.RemoveItemFromCart(ctx, productId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -96,15 +113,20 @@ func RemoveItemFromCart(srv *server.Server) gin.HandlerFunc {
 
 func UpdateCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var form models.CartOpsReq
-		err := c.BindJSON(&form)
-		if len(form.CartName) == 0 {
-			form.CartName = c.GetString("id")
+		cartId := c.Param("cart_id")
+		productId := c.Param("product_id")
+		quantity := (c.Param("quantity"))
+		if len(cartId) == 0 {
+			cartId = c.GetString("id")
 		}
-		c.Set("CartID", form.CartName)
-
+		if len(productId) == 0 || len(quantity) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ProductID and Quantity are required"})
+			return
+		}
+		c.Set("CartID", cartId)
+		quantityInt, err := strconv.Atoi(quantity)
 		ctx := GetCartContext(c)
-		res, err := srv.UpdateCart(ctx, form.ProductID, form.Quantity)
+		res, err := srv.UpdateCart(ctx, productId, uint64(quantityInt))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -116,18 +138,13 @@ func UpdateCart(srv *server.Server) gin.HandlerFunc {
 
 func DeleteCart(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var form models.DeleteCartRequest
-		err := c.BindJSON(&form)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
+		cartId := c.Param("cart_id")
+		if len(cartId) == 0 {
+			cartId = c.GetString("id")
 		}
-		if len(form.CartID) == 0 {
-			form.CartID = c.GetString("id")
-		}
-		c.Set("CartID", form.CartID)
+		c.Set("CartID", cartId)
 		ctx := GetCartContext(c)
-		err = srv.DeleteCart(ctx)
+		err := srv.DeleteCart(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -141,10 +158,11 @@ func Checkout(srv *server.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form models.CheckoutRequest
 		err := c.ShouldBindJSON(&form)
-		if len(form.CartID) == 0 {
-			form.CartID = c.GetString("id")
+		cartId := c.Param("cart_id")
+		if len(cartId) == 0 {
+			cartId = c.GetString("id")
 		}
-		c.Set("CartID", form.CartID)
+		c.Set("CartID", cartId)
 		ctx := GetCartContext(c)
 
 		if err != nil {
@@ -152,8 +170,8 @@ func Checkout(srv *server.Server) gin.HandlerFunc {
 			return
 		}
 
-		log.Printf("%s %s %s\n", form.CartID, form.MethodOfPayment, form.TransactionID)
-		res, err := srv.Checkout(ctx, form.CartID, form.MethodOfPayment, form.TransactionID, form.AddressId)
+		log.Printf("1.%s 2.%s 3.%s\n", cartId, form.MethodOfPayment, form.TransactionID)
+		res, err := srv.Checkout(ctx, cartId, form.MethodOfPayment, form.TransactionID, form.AddressId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

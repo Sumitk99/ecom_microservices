@@ -45,6 +45,7 @@ func main() {
 	cfg.CartURL = os.Getenv("CART_SERVICE_URL")
 	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
 	cfg.PORT = os.Getenv("PORT")
+	log.Printf("cfg.CatalogURL : %s\n", cfg.CatalogURL)
 	fmt.Println(cfg)
 	if len(cfg.PORT) == 0 {
 		cfg.PORT = "8080"
@@ -55,7 +56,6 @@ func main() {
 	}
 
 	routes.SetupRoutes(router, srv)
-
 	fmt.Println(fmt.Sprintf("Gateway Listening on Port %s\n", cfg.PORT))
 	err = router.Run(fmt.Sprintf("0.0.0.0:%s", cfg.PORT))
 	if err != nil {

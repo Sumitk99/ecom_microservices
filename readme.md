@@ -25,11 +25,12 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 ## Prerequisites
 
-- Docker or Go
+- Docker
 
 ## Setup
 ### Using Docker
 1. **Copy Docker Compose File**:
+
 
 2. **Pull Docker Images**:
     ```sh
@@ -38,26 +39,6 @@ This project is an advanced e-commerce platform designed using a microservices a
 3. **Run Docker Compose**:
     ```sh
     docker compose up
-    ```
-### Local Setup
-1. **Clone the repository**:
-    ```sh
-    git clone https://github.com/Sumitk99/ecom_microservices.git
-    cd ecom_microservices
-    ```
-2. **Set up environment variables**:
-   Create a `.env` file in the root directory and add the following:
-    ```env
-    POSTGRES_USER=yourusername
-    POSTGRES_PASSWORD=yourpassword
-    POSTGRES_DB=yourdatabase
-    POSTGRES_HOST=localhost
-    POSTGRES_PORT=5432
-    ```
-
-3. **Run the services**:
-    ```sh
-    make run-all
     ```
 
 ## Usage
@@ -68,28 +49,29 @@ This project is an advanced e-commerce platform designed using a microservices a
 
 - **Login**: `POST /login`
 - **Signup**: `POST /signup`
-- **Create Account**: `POST /account`
 - **Get Account**: `GET /account`
 
 ### Catalog Routes
 
 - **Add Product**: `POST /product/add`
-- Get Product by ID: `GET /product/{id}`
+- **Get Product by ID**: `GET /product/{id}`
 - **Get Products**: `GET /products`
-- **Search Products**: `GET /products?search={keyword}`}`
+- **Search Products**: `GET /products?search={keyword}`
 
 ### Order Routes
 
 - **Place Order**: `POST /order`
-- **Get Order**: `GET /order/{id}`
-- **Get Orders for Account**: `GET /orders/account/{accountId}`
+- **Get Order**: `GET /user/order/{id}`
+- **Get Orders for Account**: `GET /user/orders`
 
 ### Cart Routes
 
-- **Add to Cart**: `POST /cart/add/{id}`
-- **Get Cart**: `GET /cart/get/{id}`
-- **Delete Cart**: `DELETE /cart/delete/{id}`
-- **Checkout**: `POST /cart/checkout`
+- **Add to Cart**: `POST /cart/add/{product_id}/{quantity}`
+- **Get Cart**: `GET /cart/get`
+- **Remove Item from Cart**: `DELETE /cart/remove/{product_id}`
+- **Update Cart**: `/cart/update/{product_id}/{quantity}`
+- **Delete Cart**: `DELETE /cart/delete`
+- **Checkout**: `POST /cart/checkout
 
 ## gRPC Schemas
 

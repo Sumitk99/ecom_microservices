@@ -11,8 +11,6 @@ import (
 	"log"
 )
 
-const NoUserData = "not enough user Data provided"
-
 type Repository interface {
 	Close()
 	AddItem(ctx context.Context, cartName, accountId, guestId, productId string, quantity uint64) error
@@ -67,7 +65,7 @@ func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, g
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" {
-				return errors.New("Item already exists in selected cart")
+				return errors.New(AlreadyExists)
 			}
 		}
 	}
@@ -76,7 +74,7 @@ func (r *postgresRepository) AddItem(ctx context.Context, cartName, accountId, g
 }
 
 func (r *postgresRepository) GetCartItems(ctx context.Context, cartName, accountId, guestId string) ([]models.CartItem, error) {
-	if accountId == "" && guestId == "" {
+	if len(accountId) == 0 && len(guestId) == 0 {
 		log.Println("No info provided")
 		return nil, errors.New("no info provided")
 	}

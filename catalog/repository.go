@@ -7,7 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Sumitk99/ecom_microservices/catalog/models"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/opensearch-project/opensearch-go/v2"
+	"github.com/opensearch-project/opensearch-go/v2/signer/awsv2"
+	"io"
+
 	"log"
 	"strings"
 )
@@ -27,39 +31,48 @@ type Repository interface {
 	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]models.Product, error)
 }
 
-type elasticRepository struct {
-	client *elasticsearch.Client
+type OpenSearchRepository struct {
+	client *opensearch.Client
 }
 
-func NewElasticRepository(cloudId, apiKey string) (Repository, error) {
-
-	client, err := elasticsearch.NewClient(
-		elasticsearch.Config{
-			CloudID: cloudId,
-			APIKey:  apiKey,
-		},
-	)
+func NewOpenSearchRepository(AwsEndPoint, AwsRegion string) (Repository, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(AwsRegion))
 	if err != nil {
-		return nil, fmt.Errorf("error creating elasticsearch client: %w", err)
+		log.Fatalf("Error loading AWS config: %v", err)
+	}
+
+	// Create OpenSearch Client with AWS SigV4 signer
+	signer, err := awsv2.NewSigner(cfg)
+	if err != nil {
+		log.Fatalf("Error creating signer: %v", err)
+	}
+
+	client, err := opensearch.NewClient(opensearch.Config{
+		Addresses: []string{AwsEndPoint},
+		Signer:    signer, // Use AWS Signature V4
+	})
+
+	if err != nil {
+		return nil, err
 	}
 	res, err := client.Info()
 	if err != nil {
-		return nil, fmt.Errorf("error getting cluster info: %w", err)
+		log.Fatalf("Error getting cluster info: %v", err)
 	}
 	defer res.Body.Close()
 
-	if res.IsError() {
-		log.Fatalf("Error response from Elasticsearch: %s", res.String())
-	}
-
-	return &elasticRepository{client: client}, nil
+	body, _ := io.ReadAll(res.Body)
+	fmt.Println("Cluster Info:", string(body))
+	return &OpenSearchRepository{
+		client: client,
+	}, nil
 }
 
-func (r *elasticRepository) Close() error {
+func (r *OpenSearchRepository) Close() error {
 	return nil
 }
 
-func (r *elasticRepository) PutProduct(ctx context.Context, p models.Product) error {
+func (r *OpenSearchRepository) PutProduct(ctx context.Context, p models.Product) error {
 	doc := models.ProductDocument{
 		Name:        p.Name,
 		Description: p.Description,
@@ -77,6 +90,7 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p models.Product) er
 	if err != nil {
 		log.Fatalf("Error marshalling document: %s", err)
 	}
+
 	res, err := r.client.Index(
 		indexName,
 		strings.NewReader(string(jsonDoc)),
@@ -94,20 +108,21 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p models.Product) er
 	return err
 }
 
-func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
+func (r *OpenSearchRepository) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
 	res, err := r.client.Get(
-		"catalog",
+		indexName,
 		id,
 		r.client.Get.WithContext(ctx),
 	)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode == 404 {
 		return nil, ErrNotFound
 	}
 
-	//Raw Response → Generic Map → Source Map → JSON Bytes → Product Struct
 	var body map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
@@ -144,8 +159,7 @@ func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*mod
 	}, nil
 }
 
-func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take uint64) ([]models.Product, error) {
-	// Create the search query
+func (r *OpenSearchRepository) ListProducts(ctx context.Context, skip uint64, take uint64) ([]models.Product, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match_all": map[string]interface{}{},
@@ -161,7 +175,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 
 	res, err := r.client.Search(
 		r.client.Search.WithContext(ctx),
-		r.client.Search.WithIndex("catalog"),
+		r.client.Search.WithIndex(indexName),
 		r.client.Search.WithBody(strings.NewReader(string(jsonQuery))),
 	)
 	if err != nil {
@@ -223,7 +237,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 	return products, nil
 }
 
-func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string) ([]models.Product, error) {
+func (r *OpenSearchRepository) ListProductWithIDs(ctx context.Context, ids []string) ([]models.Product, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -243,7 +257,7 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 
 	res, err := r.client.Search(
 		r.client.Search.WithContext(ctx),
-		r.client.Search.WithIndex("catalog"),
+		r.client.Search.WithIndex(indexName),
 		r.client.Search.WithBody(bytes.NewReader(searchBody)),
 		r.client.Search.WithSize(len(ids)),
 	)
@@ -260,19 +274,20 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 	if err := json.NewDecoder(res.Body).Decode(&searchRes); err != nil {
 		return nil, fmt.Errorf("error parsing response body: %w", err)
 	}
+
 	hits, ok := searchRes["hits"].(map[string]interface{})["hits"].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error parsing hits from response")
 	}
+
 	products := make([]models.Product, 0, len(hits))
 	for _, hit := range hits {
 		hitMap := hit.(map[string]interface{})
 		source := hitMap["_source"].(map[string]interface{})
 
 		product := models.Product{
-			ID:   hitMap["_id"].(string),
-			Name: source["name"].(string),
-			//Description: source["description"].(string),
+			ID:         hitMap["_id"].(string),
+			Name:       source["name"].(string),
 			Price:      source["price"].(float64),
 			ImageUrl:   source["image_url"].(string),
 			SellerName: source["seller_name"].(string),
@@ -282,8 +297,8 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 
 	return products, nil
 }
-func (r *elasticRepository) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]models.Product, error) {
-	// Create the search query
+
+func (r *OpenSearchRepository) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]models.Product, error) {
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
 			"multi_match": map[string]interface{}{
@@ -292,18 +307,19 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 			},
 		},
 	}
+
 	searchBody, err := json.Marshal(searchQuery)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling query: %w", err)
 	}
+
 	res, err := r.client.Search(
 		r.client.Search.WithContext(ctx),
-		r.client.Search.WithIndex("catalog"),
+		r.client.Search.WithIndex(indexName),
 		r.client.Search.WithBody(bytes.NewReader(searchBody)),
 		r.client.Search.WithFrom(int(skip)),
 		r.client.Search.WithSize(int(take)),
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("error searching products: %w", err)
 	}
@@ -324,15 +340,13 @@ func (r *elasticRepository) SearchProducts(ctx context.Context, query string, sk
 	}
 
 	products := make([]models.Product, 0, len(hits))
-
 	for _, hit := range hits {
 		hitMap := hit.(map[string]interface{})
 		source := hitMap["_source"].(map[string]interface{})
 
 		product := models.Product{
-			ID:   hitMap["_id"].(string),
-			Name: source["name"].(string),
-			//Description: source["description"].(string),
+			ID:         hitMap["_id"].(string),
+			Name:       source["name"].(string),
 			Price:      source["price"].(float64),
 			ImageUrl:   source["image_url"].(string),
 			SellerName: source["seller_name"].(string),

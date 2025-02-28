@@ -8,8 +8,9 @@ import (
 )
 
 func (s *Server) GetProduct(ctx context.Context, productId string) (*models.Product, error) {
+	log.Println("Getting product")
 	res, err := s.CatalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: productId})
-
+	log.Println("Got")
 	if err != nil {
 		log.Println(err)
 		return nil, err

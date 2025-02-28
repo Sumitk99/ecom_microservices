@@ -26,6 +26,10 @@ jobs:
           echo "PORT=${{ secrets.PORT }}" >> catalog/.env
           echo "ELASTIC_SEARCH_CLOUD_ID=${{ secrets.ELASTIC_SEARCH_CLOUD_ID }}" >> catalog/.env
           echo "ELASTIC_SEARCH_API_KEY=${{ secrets.ELASTIC_SEARCH_API_KEY }}" >> catalog/.env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> catalog/.env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> catalog/.env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> catalog/.env
+          echo "AWS_ENDPOINT_URL=${{ secrets.AWS_ENDPOINT_URL }}" >> catalog/.env
           echo "PORT=${{ secrets.PORT }}" >> gateway/.env
           echo "ACCOUNT_SERVICE_URL=${{ secrets.ACCOUNT_SERVICE_URL }}" >> gateway/.env
           echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> gateway/.env

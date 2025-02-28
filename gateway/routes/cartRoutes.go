@@ -9,35 +9,38 @@ import (
 
 func CartRoutes(router *gin.Engine, srv *server.Server) {
 	router.GET(
-		"/cart/req",
+		"/cart/req", // issue a guest token to a user who is not logged in
 		controller.RequestGuestId(srv))
 
 	router.POST(
-		"/cart/add",
+		"/cart/add/:product_id/:quantity",
 		middleware.CartMiddleware(srv),
 		controller.AddItemToCart(srv),
 	)
-
 	router.GET(
 		"/cart/get",
 		middleware.CartMiddleware(srv),
 		controller.GetCart(srv))
 
-	router.PUT(
-		"/cart/remove",
-		//validator.ValidateRemoveFromCartReq(),
+	router.GET(
+		"/cart/get/:cart_id",
+		middleware.CartMiddleware(srv),
+		controller.GetCart(srv))
+
+	router.DELETE(
+		"/cart/remove/:product_id",
 		middleware.CartMiddleware(srv),
 		controller.RemoveItemFromCart(srv),
 	)
 	router.PUT(
-		"/cart/update",
+		"/cart/update/:product_id/:quantity",
 		//validator.ValidateCartOpsReq(),
 		middleware.CartMiddleware(srv),
 		controller.UpdateCart(srv),
 	)
 
 	router.DELETE(
-		"/cart/delete",
+		"/cart/delete/{cart_id}",
 		middleware.CartMiddleware(srv),
 		controller.DeleteCart(srv))
 

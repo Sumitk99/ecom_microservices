@@ -167,10 +167,10 @@ func (r *postgresRepository) GetAddresses(ctx context.Context, userID string) ([
 		SELECT id, account_id, is_default, street_address, apartment_unit, 
 			city, state, country, zip_code, created_at, name, phone
 		FROM addresses
-		WHERE account_id = $1;
+		WHERE account_id = $1 AND deleted = $2;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, userID)
+	rows, err := r.db.QueryContext(ctx, query, userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -206,10 +206,11 @@ func (r *postgresRepository) GetAddresses(ctx context.Context, userID string) ([
 
 func (r *postgresRepository) DeleteAddress(ctx context.Context, addressID, accountID string) error {
 	query := `
-		DELETE FROM addresses
-		WHERE id = $1 AND account_id = $2
+		UPDATE addresses
+		SET deleted = TRUE
+		WHERE id = $1 AND account_id = $2;
 	`
-	res, err := r.db.ExecContext(ctx, query, addressID, accountID)
+	res, err := r.db.ExecContext(ctx, query, addressID, accountID, false)
 	if err != nil {
 		return errors.New(err.Error())
 	}

@@ -56,15 +56,6 @@ func Login(srv *server.Server) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		//res := models.LoginResponse{
-		//	ID:            user.ID,
-		//	Name:          user.Name,
-		//	Email:         user.Email,
-		//	Phone:         user.Phone,
-		//	UserType:      user.UserType,
-		//	JWT_Token:     token,
-		//	Refresh_Token: refreshToken,
-		//}
 		c.SetCookie(
 			"jwt_token",            // Name of the cookie
 			res.JWT_Token,          // Value of the cookie

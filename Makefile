@@ -3,7 +3,7 @@ ACCOUNT_CMD = account/cmd/account/main.go
 CATALOG_CMD = catalog/cmd/catalog/main.go
 CART_CMD = cart/cmd/cart/main.go
 ORDER_CMD = order/cmd/order/main.go
-GATEWAY_CMD = gateway/main.go
+GATEWAY_CMD = gateway/cmd/gateway/main.go
 
 # Targets to run each service individually
 run-account:

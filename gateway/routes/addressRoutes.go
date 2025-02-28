@@ -24,7 +24,7 @@ func AddressRoutes(router *gin.Engine, srv *server.Server) {
 		controller.GetAddress(srv))
 
 	router.DELETE(
-		"/address/delete/:id",
+		"/address/delete/:address_id",
 		middleware.AuthMiddleware(srv),
 		controller.DeleteAddress(srv))
 

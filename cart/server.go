@@ -7,13 +7,17 @@ import (
 	"github.com/Sumitk99/ecom_microservices/cart/helper"
 	"github.com/Sumitk99/ecom_microservices/cart/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
-
 	"net"
 )
+
+const AlreadyExists = "Item already exists in selected cart"
+const NoUserData = "not enough user Data provided"
 
 type grpcServer struct {
 	service       CartService
@@ -64,8 +68,11 @@ func (s *grpcServer) AddItemToCart(ctx context.Context, req *pb.AddToCartRequest
 
 	err = s.service.AddItem(ctx, req.ProductId, req.Quantity)
 	if err != nil {
+		if err.Error() == AlreadyExists {
+			return nil, status.Errorf(codes.AlreadyExists, AlreadyExists)
+		}
 		log.Println(err)
-		return nil, errors.New(fmt.Sprintf("cannot add item to cart : %s\n", err))
+		return nil, errors.New(fmt.Sprintf("Error %s", err))
 	}
 	cart, err := s.GetCart(ctx, &emptypb.Empty{})
 	if err != nil {
@@ -113,13 +120,13 @@ func (s *grpcServer) GetCart(ctx context.Context, req *emptypb.Empty) (*pb.CartR
 }
 
 func (s *grpcServer) RemoveItemFromCart(ctx context.Context, req *pb.RemoveFromCartRequest) (*pb.CartResponse, error) {
-	_, err := s.catalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: req.ProductId})
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New(fmt.Sprintf("product Not Found in catalog: %s", err))
-	}
+	//_, err := s.catalogClient.GetProduct(ctx, &pb.GetProductRequest{Id: req.ProductId})
+	//if err != nil {
+	//	log.Println(err)
+	//	return nil, errors.New(fmt.Sprintf("product Not Found in catalog: %s", err))
+	//}
 
-	err = s.service.DeleteItem(ctx, req.ProductId)
+	err := s.service.DeleteItem(ctx, req.ProductId)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New(fmt.Sprintf("cannot delete item from cart : %s\n", err))
@@ -190,6 +197,7 @@ func (s *grpcServer) Checkout(ctx context.Context, req *pb.CheckoutRequest) (*pb
 	if req.MethodOfPayment != "COD" && len(req.TransactionId) == 0 {
 		return nil, errors.New("No Transaction ID Found")
 	}
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		log.Println("metadata not found")

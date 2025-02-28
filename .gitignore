@@ -1,2 +1,5 @@
 *.env
 vendor
+.secrets
+EC2 Instance Dock.pem
+.github/workflows/test_cicd.yml

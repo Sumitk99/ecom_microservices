@@ -10,9 +10,9 @@ import (
 )
 
 type Config struct {
-	CloudID string
-	ApiKey  string
-	PORT    string
+	AwsEndpoint string
+	AwsRegion   string
+	PORT        string
 }
 
 func main() {
@@ -21,20 +21,20 @@ func main() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 	var cfg Config
-	cfg.CloudID = os.Getenv("ELASTIC_SEARCH_CLOUD_ID")
-	cfg.ApiKey = os.Getenv("ELASTIC_SEARCH_API_KEY")
+	cfg.AwsEndpoint = os.Getenv("AWS_ENDPOINT_URL")
+	cfg.AwsRegion = os.Getenv("AWS_REGION")
 	cfg.PORT = os.Getenv("PORT")
 	if len(cfg.PORT) == 0 {
 		cfg.PORT = "8080"
 	}
 
-	if len(cfg.CloudID) == 0 || len(cfg.ApiKey) == 0 {
+	if len(cfg.AwsEndpoint) == 0 || len(cfg.AwsRegion) == 0 {
 		log.Fatal("Elastic search cloud id and api key are required")
 	}
 
 	var r catalog.Repository
 	retry.ForeverSleep(5*time.Second, func(_ int) (err error) {
-		r, err = catalog.NewElasticRepository(cfg.CloudID, cfg.ApiKey)
+		r, err = catalog.NewOpenSearchRepository(cfg.AwsEndpoint, cfg.AwsRegion)
 		if err != nil {
 			log.Println(err)
 		}
