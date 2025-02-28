@@ -30,7 +30,7 @@ func main() {
 	}
 
 	corsPolicy := cors.Config{
-		AllowOrigins:     []string{"http://192.168.205.239:4200", "http://localhost:4200"},
+		AllowOrigins:     []string{"https://ecom-frontend-beta-topaz.vercel.app", "http://localhost:4200"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},

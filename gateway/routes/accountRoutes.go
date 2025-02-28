@@ -4,14 +4,13 @@ import (
 	controller "github.com/Sumitk99/ecom_microservices/gateway/controllers"
 	"github.com/Sumitk99/ecom_microservices/gateway/middleware"
 	"github.com/Sumitk99/ecom_microservices/gateway/server"
-	"github.com/Sumitk99/ecom_microservices/gateway/validator"
 	"github.com/gin-gonic/gin"
 )
 
 func AccountRoutes(router *gin.Engine, srv *server.Server) {
 	router.POST(
 		"/signup",
-		validator.SignUpValidator(),
+		//validator.SignUpValidator(),
 		controller.SignUp(srv),
 	)
 
