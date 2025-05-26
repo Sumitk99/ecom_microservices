@@ -51,6 +51,7 @@ func (r *postgresRepository) PutOrder(ctx context.Context, order *models.Order) 
 	var TransactionID any = nil
 	if len(order.TransactionID) > 0 {
 		TransactionID = order.TransactionID
+		order.PaymentStatus = "PAID"
 	}
 
 	var orderStatus string

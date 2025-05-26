@@ -36,6 +36,7 @@ jobs:
           echo "CATALOG_SERVICE_URL=${{ secrets.CATALOG_SERVICE_URL }}" >> gateway/.env
           echo "CART_SERVICE_URL=${{ secrets.CART_SERVICE_URL }}" >> gateway/.env
           echo "ORDER_SERVICE_URL=${{ secrets.ORDER_SERVICE_URL }}" >> gateway/.env
+          echo "PAYMENT_URL=${{ secrets.PAYMENT_URL }}" >> gateway/.env
           echo "CLOUDINARY_CLOUD_ID=${{ secrets.CLOUDINARY_CLOUD_ID }}" >> gateway/.env
           echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> gateway/.env
           echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> gateway/.env
