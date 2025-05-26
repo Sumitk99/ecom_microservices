@@ -26,6 +26,15 @@ services:
     restart: on-failure
     image: sumitk999/catalog:latest
 
+  payment:
+    build:
+      context: ./payment
+      dockerfile: ./Dockerfile
+    ports:
+      - 8082:8080
+    restart: on-failure
+    image: sumitk999/payment:latest
+
   order:
     build:
       context: ./order
