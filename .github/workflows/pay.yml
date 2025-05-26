@@ -3,7 +3,7 @@ name: Deploy on AWS
 on:
   push:
     branches:
-      - master
+      - payments
   workflow_dispatch:
 
 jobs:

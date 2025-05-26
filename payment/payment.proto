@@ -1,0 +1,71 @@
+syntax = "proto3";
+package pb;
+// protoc --go_out=./ --go-grpc_out=./ account.proto to create go files
+option go_package = "./pb";
+
+service PaymentService {
+  rpc AddCard(AddCardRequest) returns (AddCardResponse) {}
+  rpc RemoveCard(RemoveCardRequest) returns (RemoveCardResponse) {}
+  rpc ListCards(ListCardsRequest) returns (ListCardsResponse) {}
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse) {}
+}
+
+message Card {
+  string id = 1;
+  string user_id = 2;
+  string card_number = 3;
+  string card_holder_name = 4;
+  string expiry_month = 5;
+  string expiry_year = 6;
+  string card_type = 7;
+  bool is_default = 8;
+  string created_at = 9;
+}
+
+message AddCardRequest {
+  string user_id = 1;
+  string card_number = 2;
+  string card_holder_name = 3;
+  string expiry_month = 4;
+  string expiry_year = 5;
+  string card_type = 6;
+  bool is_default = 7;
+}
+
+message AddCardResponse {
+  Card card = 1;
+  string error = 2;
+}
+
+message RemoveCardRequest {
+  string card_id = 1;
+  string user_id = 2;
+}
+
+message RemoveCardResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message ListCardsRequest {
+  string user_id = 1;
+}
+
+message ListCardsResponse {
+  repeated Card cards = 1;
+  string error = 2;
+}
+
+message ProcessPaymentRequest {
+  string user_id = 1;
+  string card_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string description = 5;
+}
+
+message ProcessPaymentResponse {
+  string transaction_id = 1;
+  string status = 2;
+  string error = 3;
+} 

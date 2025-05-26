@@ -39,7 +39,7 @@ func main() {
 		log.Fatal("No ORDER_SERVICE_URL set")
 	}
 	if len(cfg.PORT) == 0 {
-		cfg.PORT = "8080"
+		cfg.PORT = "8081"
 	}
 
 	var r cart.Repository

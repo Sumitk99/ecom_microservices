@@ -35,6 +35,15 @@ services:
     restart: on-failure
     image: sumitk999/order:latest
 
+  payment:
+    build:
+      context: ./payment
+      dockerfile: ./Dockerfile
+    ports:
+      - 8085:5004
+    restart: on-failure
+    image: sumitk999/payment:latest
+
   gateway:
     build:
       context: ./gateway
@@ -47,6 +56,7 @@ services:
       - catalog
       - order
       - cart
+      - payment
     restart: on-failure
     image: sumitk999/gateway:latest
     volumes:

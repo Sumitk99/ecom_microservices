@@ -29,7 +29,7 @@ func main() {
 	cfg.PORT = os.Getenv("PORT")
 
 	if len(cfg.PORT) == 0 {
-		cfg.PORT = "8080"
+		cfg.PORT = "8083"
 	}
 	var r order.Repository
 	retry.ForeverSleep(2*time.Second, func(_ int) (err error) {

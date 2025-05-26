@@ -72,11 +72,6 @@ func (srv *grpcServer) PostOrder(ctx context.Context, req *pb.PostOrderRequest) 
 	//	log.Println("Error getting account", err)
 	//	return nil, errors.New("account not found")
 	//}
-	if req.MethodOfPayment != "COD" {
-		return &pb.PostOrderResponse{
-			Message: "Other Payment to be Available Soon. Stay Tuned",
-		}, nil
-	}
 	if len(req.MethodOfPayment) == 0 {
 		return nil, errors.New("Select A Payment Method to Continue")
 	}

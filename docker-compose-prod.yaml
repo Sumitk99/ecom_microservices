@@ -17,6 +17,12 @@ services:
     restart: on-failure
     image: sumitk999/catalog:latest
 
+  payment:
+    ports:
+      - 8085:8080
+    restart: on-failure
+    image: sumitk999/payment:latest
+
   order:
     ports:
       - 8083:8080

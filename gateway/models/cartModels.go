@@ -22,7 +22,7 @@ type CartResponse struct {
 }
 
 type CheckoutRequest struct {
-	MethodOfPayment string `json:"method_of_payment" validate:"required"`
+	MethodOfPayment string `json:"method_of_payment" validate:"required,eq=COD|eq=CARD"`
 	TransactionID   string `json:"transaction_id"` // not required for COD
 	AddressId       string `json:"address_id" validate:"required"`
 }
