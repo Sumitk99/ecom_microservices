@@ -11,4 +11,5 @@ func SetupRoutes(router *gin.Engine, srv *server.Server) {
 	CartRoutes(router, srv)
 	AddressRoutes(router, srv)
 	OrderRoutes(router, srv)
+	PaymentRoutes(router, srv)
 }

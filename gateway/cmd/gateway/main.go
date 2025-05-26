@@ -18,6 +18,7 @@ type Config struct {
 	OrderURL   string
 	CartURL    string
 	CatalogURL string
+	PaymentURL string
 	PORT       string
 }
 
@@ -44,13 +45,14 @@ func main() {
 	cfg.OrderURL = os.Getenv("ORDER_SERVICE_URL")
 	cfg.CartURL = os.Getenv("CART_SERVICE_URL")
 	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
+	cfg.PaymentURL = os.Getenv("PAYMENT_URL")
 	cfg.PORT = os.Getenv("PORT")
 	log.Printf("cfg.CatalogURL : %s\n", cfg.CatalogURL)
 	fmt.Println(cfg)
 	if len(cfg.PORT) == 0 {
-		cfg.PORT = "8080"
+		cfg.PORT = "8084"
 	}
-	srv, err := server.NewGinServer(cfg.AccountURL, cfg.CartURL, cfg.OrderURL, cfg.CatalogURL)
+	srv, err := server.NewGinServer(cfg.AccountURL, cfg.CartURL, cfg.OrderURL, cfg.CatalogURL, cfg.PaymentURL)
 	if err != nil {
 		log.Println(err)
 	}

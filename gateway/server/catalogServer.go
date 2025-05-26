@@ -91,25 +91,4 @@ func (s *Server) PostProduct(ctx context.Context, product *models.ProductDocumen
 		return nil, err
 	}
 	return res, nil
-	//clrs = []models.Color{}
-	//for _, color := range res.Product.Colors {
-	//	clrs = append(clrs, models.Color{
-	//		ColorName: color.ColorName,
-	//		Hex:       color.Hex,
-	//	})
-	//}
-	//return &models.Product{
-	//	ID:          res.Product.ProductId,
-	//	Name:        res.Product.Title,
-	//	Description: res.Product.Description,
-	//	Price:       res.Product.Price,
-	//	Category:    res.Product.Category,
-	//	Stock:       res.Product.AvailableQuantity,
-	//	Locations:   res.Product.Locations,
-	//	ImageUrl:    res.Product.ImageURL,
-	//	Sizes:       res.Product.Sizes,
-	//	Colors:      clrs,
-	//	SellerID:    res.Product.SellerId,
-	//	SellerName:  res.Product.SellerName,
-	//}, nil
 }

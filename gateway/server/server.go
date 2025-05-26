@@ -14,10 +14,11 @@ type Server struct {
 	CatalogClient     pb.CatalogServiceClient
 	OrderClient       pb.OrderServiceClient
 	CartClient        pb.CartServiceClient
+	PaymentClient     pb.PaymentServiceClient
 	CloudinaryStorage *cloudinary.Cloudinary
 }
 
-func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl string) (*Server, error) {
+func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl, paymentUrl string) (*Server, error) {
 	CartConn, err := grpc.NewClient(
 		cartUrl, grpc.WithTransportCredentials(
 			insecure.NewCredentials(),
@@ -77,11 +78,24 @@ func NewGinServer(accountUrl, cartUrl, orderUrl, catalogUrl string) (*Server, er
 		return nil, err
 	}
 
+	PaymentConn, err := grpc.NewClient(
+		paymentUrl, grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
+	if err != nil {
+		CartConn.Close()
+		AccountConn.Close()
+		OrderConn.Close()
+		return nil, err
+	}
+	PaymentService := pb.NewPaymentServiceClient(PaymentConn)
 	return &Server{
 		AccountClient:     AccountService,
 		CartClient:        CartService,
 		OrderClient:       OrderService,
 		CatalogClient:     CatalogService,
 		CloudinaryStorage: CloudinaryService,
+		PaymentClient:     PaymentService,
 	}, nil
 }
