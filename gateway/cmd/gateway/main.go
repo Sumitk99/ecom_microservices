@@ -46,6 +46,7 @@ func main() {
 	cfg.CartURL = os.Getenv("CART_SERVICE_URL")
 	cfg.CatalogURL = os.Getenv("CATALOG_SERVICE_URL")
 	cfg.PaymentURL = os.Getenv("PAYMENT_URL")
+	log.Println("PAYMENT_URL : ", cfg.PaymentURL)
 	cfg.PORT = os.Getenv("PORT")
 	log.Printf("cfg.CatalogURL : %s\n", cfg.CatalogURL)
 	fmt.Println(cfg)

@@ -55,5 +55,6 @@ services:
       - catalog
       - order
       - cart
+      - payment
     restart: on-failure
     image: sumitk999/gateway:latest

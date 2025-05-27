@@ -9,7 +9,7 @@ RUN GO111MODULE=on go build -o /build/gateway ./cmd/gateway
 
 FROM alpine:3.19
 ENV PORT=8080
-ENV PAYMENT_URL=localhost:8085
+ENV PAYMENT_URL=payment:8080
 WORKDIR /usr/bin
 COPY --from=build /build/gateway .
 COPY .env .
