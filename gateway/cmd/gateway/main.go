@@ -31,7 +31,7 @@ func main() {
 	}
 
 	corsPolicy := cors.Config{
-		AllowOrigins:     []string{"https://shop.micro-scale.software", "https://ecom-frontend-git-master-sumit-kumars-projects-f58ba4dd.vercel.app", "https://ecom-frontend-beta-topaz.vercel.app", "http://localhost:4200"},
+		AllowOrigins:     []string{"https://entanglesoftware.com", "https://shop.micro-scale.software", "https://ecom-frontend-git-master-sumit-kumars-projects-f58ba4dd.vercel.app", "https://ecom-frontend-beta-topaz.vercel.app", "http://localhost:4200"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
